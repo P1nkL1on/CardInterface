@@ -23,6 +23,14 @@
 		static var Forest = subtypeF(Land, 3);
 		static var Swamp = subtypeF(Land, 4);
 		static var Mountain = subtypeF(Land, 5);
+	// - - - -- - creature subtypes
+		static var Beast = subtypeF(Creature, 1);
+		static var Vampire = subtypeF(Creature, 2);
+		static var Skeleton = subtypeF(Creature, 3);
+		static var Human = subtypeF(Creature, 4);
+		static var Dog = subtypeF(Creature, 5);
+		static var Ogr = subtypeF(Creature, 6);
+		static var Wizard = subtypeF(Creature, 7);
 	
 		
 		static function typToString(t):String{
@@ -46,11 +54,20 @@
 		
 		static function subTypToString(t):String{
 			switch (t){
-				case subtypeF(Land, 1): return "Plane";
-				case subtypeF(Land, 2): return "Island";
-				case subtypeF(Land, 3): return "Forest";
-				case subtypeF(Land, 4): return "Swamp";
-				case subtypeF(Land, 5): return "Mountain";
+				case Plane: return "Plane";
+				case Island: return "Island";
+				case Forest: return "Forest";
+				case Swamp: return "Swamp";
+				case Mountain: return "Mountain";
+				
+				case Beast: return "Beast";
+				case Vampire: return "Vampire";
+				case Vampire: return "Vampire";
+				case Skeleton: return "Skeleton";
+				case Human: return "Human";
+				case Dog: return "Dog";
+				case Ogr: return "Ogr";
+				case Wizard: return "Wizard";
 				default: return "SubType"+t;
 			}
 			return "????";

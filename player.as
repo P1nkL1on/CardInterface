@@ -76,9 +76,9 @@
 				return res;
 			}
 			// count of cards in player's something
-			static function defaultFilter (card:Object):Boolean { return true; }
-			static function filterCreatures (card:Object):Boolean { return card.isType(card, typ.Creature); }
-			static function filterLand (card:Object):Boolean { return card.isType(card, typ.Land); }
+			static function defaultFilter (ccard:Object):Boolean { return true; }
+			static function filterCreatures (ccard:Object):Boolean { return card.isType(ccard, typ.Creature); }
+			static function filterLand (ccard:Object):Boolean { return card.isType(ccard, typ.Land);}
 			
 			// return array of something with paramaters
 			static function eachCardInFilter(playerObject:Object, place:Number, filter):Array{
@@ -193,7 +193,7 @@
 					return false;
 				}
 				// landdrop case
-				
+				moveCardTo(cardObj, places.battlefield);
 				return true;
 			}
 			

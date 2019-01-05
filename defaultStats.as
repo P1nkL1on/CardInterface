@@ -8,7 +8,7 @@
 			"Daybreak Chaplain", 1, 3,
 			
 			"Test Creature", 4, 5,
-			"Test Wizard", 2, 2
+			"Test Wizard", 2, 2,
 			"Test Ogre", 3, 4,
 			"Test Dogo", 1, 1
 		);

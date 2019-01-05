@@ -9,8 +9,8 @@
 			return makePicture(cardObject._name);
 		}
 		
-		static function makePicture(cardName):Number{
-			return 1;
+		static function makePicture(cardName){
+			return cardName;
 		}
 		static var colorToPic = new Array(-1, 4, 2, 1, 5, 3);
 		static function makePictureForBasicLand(cardColor):Number{
@@ -23,8 +23,9 @@
 		static function traceToMovieClip(cardObject:Object, mc:MovieClip):MovieClip{
 			
 			if (cardObject.isVisibleTo.length > 0){
+					var wasNot1 = mc._currentframe != 1;
 					mc.gotoAndStop(1);
-					mc.pic.gotoAndStop(makePictureForCard(cardObject));// apply color
+					if (wasNot1) mc.pic.gotoAndStop(makePictureForCard(cardObject));// apply color
 					
 					var clrs:Array = cardObject.cColors(); var clL = clrs.length;
 
@@ -101,7 +102,7 @@
 				return;
 			cardObj = cardObj.mc;
 			cardObj.xx = XX; cardObj.yy = YY; cardObj.zz = ZZ;
-			cardObj.nextDepth = Math.round(cardObj.xx - cardObj.yy * 15 + cardObj.zz * 100)
+			cardObj.nextDepth = Math.round(cardObj.xx + cardObj.yy * 15 + cardObj.zz * 100)
 			//cardObj.swapDepths();
 			cardObj.timeout = wait;
 			//trace(XX+'/'+YY+'/'+ZZ+'/'+wait+"   " + cardObj._name);
@@ -144,15 +145,37 @@
 			return random(30)/10 - 1.5;
 		}
 		static function placeBattlefield(playerObject:Object):Void{
-			var cardTotal = player.cardCountIn(playerObject, places.hand);
-			
-			var cardNumber = 0;
+			var creatureTotal = player.cardCountInFilter(playerObject, places.battlefield, player.filterCreatures);
+			var landTotal = player.cardCountInFilter(playerObject, places.battlefield, player.filterLand); 
+			var otherTotal = player.cardCountIn(playerObject, places.battlefield) - creatureTotal - landTotal;
+
+			var crC = 0; var lC = 0; var oC = 0; var cardNumber = 0;
+			var xFrom = 50; var xTo = 860; var yLine1 = 300; var yLine2 = 420;
+			var xTo1 = 340; var xFrom1 = 520;
 			
 			var moveCardNumber = 30;
-			player.forEachCardIn(playerObject, places.hand, function(card:Object){
+			player.forEachCardIn(playerObject, places.battlefield, function(ccard:Object){
 				++cardNumber;
+				var isCreature = card.isType(ccard, typ.Creature);
+				var moveToX = 0; var moveToY = 0; var moveToZ = 0;
+				var isLand = card.isType(ccard, typ.Land);
 				
-				moveCard(card, moveToX, moveToY, moveToZ,  timer);
+				if (isCreature){
+					++crC;
+					moveToX = calculateXCoord(xFrom, xTo, creatureTotal, crC);
+					moveToY = yLine1;
+				}else{
+					moveToY = yLine2;
+					if (isLand){
+						++lC;
+						moveToX = calculateXCoord(xFrom, xTo1, landTotal, lC);
+					}else{
+						++oC;
+						moveToX = calculateXCoord(xFrom1, xTo, otherTotal, oC);
+					}
+				}
+				//trace(ccard._name + "  " +isCreature + "  " + isLand );
+				moveCard(ccard, moveToX, moveToY, moveToZ,  0);
 			});
 		}
 		
@@ -164,7 +187,7 @@
 			var moveCardNumber = 30;
 			player.forEachCardIn(playerObject, places.hand, function(card:Object){
 				++cardNumber;
-				var moveToX = xFrom + ((cardTotal > (xTo - xFrom) / 100)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + 100 * (cardTotal * (-.5) + cardNumber)));
+				var moveToX = calculateXCoord(xFrom, xTo, cardTotal, cardNumber);
 				var moveToY = playerStartY;
 				var moveToZ = 0;
 				var timer = 0;
@@ -178,5 +201,8 @@
 				}
 				moveCard(card, moveToX, moveToY, moveToZ,  timer);
 			});
+		}
+		static function calculateXCoord (xFrom, xTo, cardTotal, cardNumber):Number{
+			return xFrom + ((cardTotal > (xTo - xFrom) / 100)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + 100 * (cardTotal * (-.5) + cardNumber)));
 		}
 	}

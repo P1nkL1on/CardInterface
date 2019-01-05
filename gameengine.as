@@ -14,7 +14,12 @@
 					7 + random(10), "Basic Plane", 
 					7 + random(10), "Basic Forest", 
 					7 + random(10), "Basic Mountain",
-					7 + random(10), "Basic Swamp"), 
+					7 + random(10), "Basic Swamp",
+					3, "Test Creature",
+					3, "Test Wizard",
+					3, "Test Dogo",
+					3, "Test Ogre"), 
+					
 					new Array(20, "Basic Forest")
 				));
 			
