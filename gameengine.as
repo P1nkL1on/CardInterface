@@ -11,10 +11,10 @@
 				new Array(
 					new Array(
 					7 + random(1)+10, "Basic Island",
-					7 + random(100)*0, "Basic Plane", 
-					7 + random(100)*0, "Basic Forest", 
-					7 + random(100)*0, "Basic Mountain",
-					7 + random(100)*0, "Basic Swamp"), 
+					7 + random(10), "Basic Plane", 
+					7 + random(10), "Basic Forest", 
+					7 + random(10), "Basic Mountain",
+					7 + random(10), "Basic Swamp"), 
 					new Array(20, "Basic Forest")
 				));
 			
@@ -30,6 +30,8 @@
 			// at the end of each unkeep that player draws a card
 			
 			// player can play only 1 land dureing his turn
+			
+			game = g;
 		}
 	
 	
@@ -41,9 +43,12 @@
 		):Object			// return the Game object
 		{
 			var newGame = new Object();
+			newGame.allPlayersIDS = new Array();
 			newGame.players = new Array(); // player objects array
-			for (var i = 0; i < players.length; ++i)
+			for (var i = 0; i < players.length; ++i){
 				newGame.players.push(player.createPlayer(i, players[i], playerCards[i]));
+				newGame.allPlayersIDS.push(i);
+			}
 			newGame.playerCount = newGame.players.length; 					// number of players
 			newGame.currentTurnPlayerIndex = random(newGame.playerCount);	// will start the game
 			

@@ -67,6 +67,8 @@
 				newCard.abilities = new Array(); // zero array or card abilities
 				if (cardAbilities != undefined) for (var i = 0; i < cardAbilities.length; ++i) newCard.abilities.push(cardAbilities[i]); // add all abilities
 			
+			// CARD VISIBLE
+				newCard.update = function (){if (this.mc != undefined) drawing.traceToMovieClip(this, this.mc);}
 			consts.LOG("Card added to game: " + cardNameTypeColorCostOwnerToString(newCard));
 			return newCard;
 		}

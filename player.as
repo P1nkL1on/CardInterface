@@ -67,27 +67,43 @@
 					playerObject.cards[cardsFromDeckIndexes[i]] = cardsShuffled[i];
 					
 				consts.LOG(playerObject._name + " shuffled their deck");
-				traceAllPlayerCardsFrom(playerObject, places.deck);
+				//traceAllPlayerCardsFrom(playerObject, places.deck);
 			}
 		
 			static function playerDrawsCards(playerObject:Object, cardCount:Number):Void{
+				var deckEmpty = playerMoveCards(playerObject, cardCount, places.deck, places.hand);
+				if (!deckEmpty);
+					// LOST THE GAME!
+			}
+			static function playerPutTopCardsToGraveyard(playerObject:Object, cardCount:Number):Void{
+				playerMoveCards(playerObject, cardCount, places.deck, places.graveyard);
+			}
+			
+			static function playerMoveCards(playerObject:Object, cardCount:Number, from:Number, to:Number):Boolean{
 				if (cardCount == undefined) cardCount = 1;
 				var nowCardInd = -1;
 				var curCard = null;
-				while (cardCount){
+				var moveString = "  " + places.placeToString(from) +" -> "+ places.placeToString(to);
+				while (cardCount && nowCardInd < playerObject.cards.length){
 					++nowCardInd;
 					curCard = playerObject.cards[nowCardInd];
-					if (curCard.isin == places.deck){
-						curCard.isin = places.hand;
-						curCard.isVisibleTo.push(playerObject.PID);
+					if (curCard.isin == from){
+						curCard.isin = to;
+						if (to == places.hand) curCard.isVisibleTo.push(playerObject.PID);
+						if (to >= 2) curCard.isVisibleTo = gameengine.game.allPlayersIDS;
+						curCard.update();
+						
 						--cardCount;
-						consts.LOG(playerObject._name + " draws " + card.cardNamePIDVisible(curCard));
+						consts.LOG(playerObject._name + " move " + card.cardNamePIDVisible(curCard) + moveString);
+						if (cardCount <= 0)
+							return true;
 					}
 				}
-				traceAllPlayerCardsFrom(playerObject, places.hand);	
+				// 
+				if (from == 0 && to == 1)
+					consts.LOG(playerObject._name + " need to draw (" + cardCount + ") more card(s), but hs deck is empty!" );
+				return false;
 			}
-			
-			
 			
 			
 		// TRACE FUNCTIONS
