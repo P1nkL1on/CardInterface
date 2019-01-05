@@ -11,7 +11,6 @@
 				case "Basic Plane": return  createCard(cardName, colors.white, new Array(typ.Basic, typ.Land), typ.Plane, cardHost);
 				case "Basic Swamp": return  createCard(cardName, colors.black, new Array(typ.Basic, typ.Land), typ.Swamp, cardHost);
 				case "Basic Mountain": return  createCard(cardName, colors.red, new Array(typ.Basic, typ.Land), typ.Mountain, cardHost);
-				
 				default: return null;
 			}
 			return null;
@@ -28,9 +27,8 @@
 			cardSubType,   // same number or array   watch "typ.as", like {50, 51}, {5102} == Basic Land -- Island
 			cardHost:Object,	// instance of PlayerObject. Sets to 'null' if none player given
 			cardAbilities,		// array of functions
-			cardPlayCost:Object,	// cost of playing a card. if none given, card will have no cost, like a Land
+			cardPlayCost:Object	// cost of playing a card. if none given, card will have no cost, like a Land
 			
-			cardPicture:Object // special object for card drawing
 		):Object // return a card object
 		{
 			var newCard = new Object();
@@ -66,6 +64,11 @@
 			// SOME PARAMETERS BASED ON A TYPE
 				newCard.abilities = new Array(); // zero array or card abilities
 				if (cardAbilities != undefined) for (var i = 0; i < cardAbilities.length; ++i) newCard.abilities.push(cardAbilities[i]); // add all abilities
+				newCard.asCreature = null;
+				if (newCard.isType(typ.Creature)){
+					newCard.everWasCreature = true; // to check a transofmation from land to creature and back
+					newCard.asCreature = defaultStats.createAsCreatureObject(cardName);
+				}
 			
 			// CARD VISIBLE
 				newCard.update = function (){if (this.mc != undefined) drawing.traceToMovieClip(this, this.mc);}
@@ -73,6 +76,21 @@
 			return newCard;
 		}
 		
+		// FIND FUNCTIONS
+		static function isType(co:Object, typeFinding:Number, onlyDefault:Boolean):Boolean{
+			var types = (onlyDefault == true)? co.cardSubType : co.cTypes();
+			for (var i = 0; i < types.length; ++i)
+				if (types[i] == typeFinding)
+					return true;
+			return false;
+		}
+		static function isSubType(co:Object, subtypeFinding:Number, onlyDefault:Boolean):Boolean{
+			var types = (onlyDefault == true)? co.cardSubType : co.cSubTypes();
+			for (var i = 0; i < types.length; ++i)
+				if (types[i] == subtypeFinding)
+					return true;
+			return false;
+		}
 		
 		// TRACE FUNCTIONS
 		static function cardNamePIDVisible(newCard:Object):String{

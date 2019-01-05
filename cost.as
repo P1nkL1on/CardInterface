@@ -20,4 +20,8 @@
 				return "no cost";
 			return "some cost";
 		}
+		
+		static function payTheCost(c):Boolean{
+			return (c.isNone == true);
+		}
 	}

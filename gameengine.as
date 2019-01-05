@@ -50,12 +50,16 @@
 				newGame.allPlayersIDS.push(i);
 			}
 			newGame.playerCount = newGame.players.length; 					// number of players
-			newGame.currentTurnPlayerIndex = random(newGame.playerCount);	// will start the game
+			newGame.currentTurnPlayerIndex = 0;//random(newGame.playerCount);	// will start the game
 			
 			newGame.getPlayer = function (PID:Number):Object{return this.players[PID];}
 			newGame.getCurrentPlayer = function ():Object{return this.getPlayer(this.currentTurnPlayerIndex);}
+			newGame.phase = main;
 			
 			game = newGame;	// assign a last copy
 			return game;
 		}
+		
+		static var main = 20;
+		static var secondMain = 30;
 	}

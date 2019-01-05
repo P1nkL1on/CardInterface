@@ -115,6 +115,7 @@
 				var cardTotal = player.cardCountIn(playerObject, place);
 				var cardNumber = 0;
 				var moveCardNumber = 0;
+				var movenCardNumber = 0;
 				var startX = playerStartX + 120 * i;
 				player.forEachCardIn(playerObject, place, function(card:Object){
 					++cardNumber;
@@ -130,8 +131,9 @@
 					if (Math.abs(startX - card.mc.xx) < 5) 
 						timer = 0.1; 		// this case prevent a 250 card deck to sloowly goon in match start
 					else {
+						++movenCardNumber;
 						timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
-						moveCardNumber += 30;		// time delay between card mvoements
+						moveCardNumber += Math.max( 2, 30 - movenCardNumber * .3);		// time delay between card mvoements
 						card.mc.sp_z = 25;			// speed of upping when card mvoes
 					}
 					moveCard(card, moveToX, moveToY, moveToZ,  timer);
@@ -141,6 +143,19 @@
 		static function randomOffset():Number{
 			return random(30)/10 - 1.5;
 		}
+		static function placeBattlefield(playerObject:Object):Void{
+			var cardTotal = player.cardCountIn(playerObject, places.hand);
+			
+			var cardNumber = 0;
+			
+			var moveCardNumber = 30;
+			player.forEachCardIn(playerObject, places.hand, function(card:Object){
+				++cardNumber;
+				
+				moveCard(card, moveToX, moveToY, moveToZ,  timer);
+			});
+		}
+		
 		static function placeHandForPlayer(playerObject:Object):Void{
 			var cardTotal = player.cardCountIn(playerObject, places.hand);
 			var cardNumber = 0;
@@ -149,7 +164,7 @@
 			var moveCardNumber = 30;
 			player.forEachCardIn(playerObject, places.hand, function(card:Object){
 				++cardNumber;
-				var moveToX = xFrom + (xTo - xFrom) / (cardTotal) * (cardNumber)
+				var moveToX = xFrom + ((cardTotal > (xTo - xFrom) / 100)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + 100 * (cardTotal * (-.5) + cardNumber)));
 				var moveToY = playerStartY;
 				var moveToZ = 0;
 				var timer = 0;
@@ -159,13 +174,9 @@
 					timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
 					moveCardNumber += 30;		// time delay between card mvoements
 					card.mc.sp_z = 15;			// speed of upping when card mvoes
+					card.mc._rotation = 0;
 				}
 				moveCard(card, moveToX, moveToY, moveToZ,  timer);
 			});
 		}
-		//mc.xx = (!place)? (xFrom + 50 + random(80) / 10 - 4) : (xFrom + (xTo - xFrom) / (cardTotal - 1) * (cardNumber++));
-		//mc.yy = (place + 1) * 120;
-		//mc.zz = (place)? 0 : (cardNumber ++ );
-		//mc.swapDepths(Math.round(mc.xx + mc.zz * 100));
-		//trace(place+":" + cardNumber + ":" + Math.round(-mc.xx + mc.zz * 100))
 	}
