@@ -9,6 +9,8 @@
 				case "Basic Island": return createCard(cardName, colors.blue, new Array(typ.Basic, typ.Land), typ.Island, cardHost);
 				case "Basic Forest": return createCard(cardName, colors.green, new Array(typ.Basic, typ.Land), typ.Forest, cardHost);
 				case "Basic Plane": return  createCard(cardName, colors.white, new Array(typ.Basic, typ.Land), typ.Plane, cardHost);
+				case "Basic Swamp": return  createCard(cardName, colors.black, new Array(typ.Basic, typ.Land), typ.Swamp, cardHost);
+				case "Basic Mountain": return  createCard(cardName, colors.red, new Array(typ.Basic, typ.Land), typ.Mountain, cardHost);
 				
 				default: return null;
 			}
@@ -26,7 +28,9 @@
 			cardSubType,   // same number or array   watch "typ.as", like {50, 51}, {5102} == Basic Land -- Island
 			cardHost:Object,	// instance of PlayerObject. Sets to 'null' if none player given
 			cardAbilities,		// array of functions
-			cardPlayCost:Object	// cost of playing a card. if none given, card will have no cost, like a Land
+			cardPlayCost:Object,	// cost of playing a card. if none given, card will have no cost, like a Land
+			
+			cardPicture:Object // special object for card drawing
 		):Object // return a card object
 		{
 			var newCard = new Object();
@@ -77,8 +81,6 @@
 			return ("'"+newCard._name+"' has " + cost.costToString(newCard.cost)) + 
 			(", is  " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard)+", owned by " + newCard.host._name);
 		}
-		
-		
 		
 		
 		

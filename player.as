@@ -16,6 +16,7 @@
 			newPlayer._name = playerName;
 			//transform from ' playerCards = new Array(14, "Island", 10, "Varmountain"); ' to real card examples
 			newPlayer.cards = new Array();
+			newPlayer.timer = 0;
 			for (var i = 0; i < playerCards.length; i += 2){
 				var cardCount = playerCards[i];
 				var cardName = playerCards[i + 1];
@@ -35,6 +36,13 @@
 					if (playerObject.cards[i].isin == place)
 						action(playerObject.cards[i]);
 						
+			}
+			// count of cards in player's something
+			static function cardCountIn(playerObject:Object, place:Number):Number{
+				var res = 0;
+				for (var i = 0; i < playerObject.cards.length; ++i)
+					res += 1 * (playerObject.cards[i].isin == place);
+				return res;
 			}
 			
 			// force a target player to shuffle his deck

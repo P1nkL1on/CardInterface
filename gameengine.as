@@ -9,13 +9,20 @@
 					"Bobby"
 				), 
 				new Array(
-					new Array(14, "Basic Island", 6, "Basic Plane"), 
+					new Array(
+					7 + random(1)+10, "Basic Island",
+					7 + random(100)*0, "Basic Plane", 
+					7 + random(100)*0, "Basic Forest", 
+					7 + random(100)*0, "Basic Mountain",
+					7 + random(100)*0, "Basic Swamp"), 
 					new Array(20, "Basic Forest")
 				));
 			
 			var ivan = g.getPlayer(0);
 			player.playerShuflesDeck(ivan);
-			player.playerDrawsCards(ivan, 7);
+			drawing.createMcForEveryPlayerCard(ivan);
+			drawing.placeDecksForPlayer(ivan);
+			//player.playerDrawsCards(ivan, 7);
 			
 			// emblem! 
 			// at the begginig of each unkeep all player untap all shit he has
