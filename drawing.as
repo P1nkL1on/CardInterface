@@ -77,21 +77,29 @@
 					mc.onEnterFrame = function (){
 						//trace(this.timeout)
 						if (this.timeout == -1){ 
-							if (this.selected && Key.isDown(1)){
-								this._rotation = random(31) - 15;
-								createManaAtCardMcAndMoveToManaPool(this, 1+random(5));
-							}
-							this.selected = false;
+							// there is no card choosing in Deck!
+							if (this.indeck == true) return;
+							
+							// glow border of needed color
+							this.gotoFr = 1; if (this.mouseOver) this.gotoFr = 2; if (this.selected) this.gotoFr = 3;
+							if (this.glow._currentframe != this.gotoFr) this.glow.gotoAndStop(this.gotoFr);
+							
+							// is mouse i zone of hand, battlefield, etc
 							this._x += (this.choosingX - this._x) / 3;
 							this._y += (this.choosingY - this._y) / 8;
+							this.notInZone = (Math.abs(this.yy - _root._ymouse) > 50 || _root._xmouse <= this.xfrom - 50 || _root._xmouse >= this.xto + 50);
+							if (this.space <= 0){
+								this.mouseOver = !this.notInZone && (Math.abs(this.xx - _root._xmouse) < 48);
+								this.choosingY = this._yy - 30 * this.mouseOver;
+								return; // cards are enougth wide to be seen well
+							}
 							// or else we need to move them casuse of cursors
-							this.dy = this.yy - _root._ymouse;
+							//this.dy = this.yy - _root._ymouse;
 							// do not do anything, if mouse not in a place
-							if (Math.abs(this.dy) > 50 || _root._xmouse <= this.xfrom - 50 || _root._xmouse >= this.xto + 50)
+							if (this.notInZone)
 								{ this.choosingX = this.xx; this.choosingY = this._yy; return; }	 
-							this.selected = (_root._xmouse >= this.selectX && _root._xmouse < this.selectXt);
-							if (this.space <= 0) return; // cards are enougth wide to be seen well
-							if (this.selected)
+							this.mouseOver = (_root._xmouse >= this.selectX && _root._xmouse < this.selectXt);
+							if (this.mouseOver)
 								{ this.choosingX = this.xx; this.choosingY = this._yy - 30; selectedItem = this.lastNumber; selectedItemX = this.xx - this.xfrom; return; }	
 							else
 								this.choosingY = this._yy;
@@ -165,6 +173,7 @@
 						moveCardNumber += Math.max( 2, 30 - movenCardNumber * .3);		// time delay between card mvoements
 						card.mc.sp_z = 25;			// speed of upping when card mvoes
 					}
+					card.mc.indeck = true;
 					moveCard(card, moveToX, moveToY, moveToZ,  timer);
 				});
 			}
@@ -272,15 +281,16 @@
 		}
 		
 		static function spaceMc(mc:MovieClip, xFrom, xTo, cardTotal, cardNumber, moveToX){
+			mc.indeck = false;
 			mc.lastTotal = cardTotal - 1;
 			mc.lastNumber = cardNumber;
 			mc.xfrom = xFrom; mc.xto = xTo;
 			mc.spaceStep = (xTo - xFrom) / (cardTotal - 1);
 			mc.selectX = moveToX - mc.spaceStep * .5; mc.selectXt = moveToX + mc.spaceStep * .5;
-			mc.cOffset = 50 / mc.spaceStep;
-			if (cardNumber == 0) mc.selectX -= 50;
-			if (cardNumber == cardTotal - 1) mc.selectXt += 50;
-			mc.space = spaceDiff(xFrom, xTo, mc.lastTotal);
+			mc.cOffset = 50 / mc.spaceStep;						
+			if (cardNumber == 0) mc.selectX -= 50;				// left most
+			if (cardNumber == cardTotal - 1) mc.selectXt += 50;	// right most cad zone add
+			mc.space = spaceDiff(xFrom, xTo, mc.lastTotal);		// a palce between cards, which are common
 		}
 		
 		
