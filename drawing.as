@@ -48,6 +48,8 @@
 			return newCard;
 		}
 		static var stopMoveWhen = 1;
+		static var selectedItem = -1;
+		static var selectedItemX = -1;
 		static function createMcForEveryPlayerCard(playerObject:Object, x, y):Void{
 			for (var i = 0, cardWas = 0; i < 5; ++i, cardTotal += cardTotal){
 				var place = i;
@@ -71,9 +73,30 @@
 					mc._z = 0; mc._yy = 0;	// special additional coordinates to simulate height
 					mc.sp_z = 0; 			// speed in height coordinates
 					mc.nextDepth = mc.getDepth();
+					mc.choosingX = 0; mc.choosingY = 0;
 					mc.onEnterFrame = function (){
 						//trace(this.timeout)
-						if (this.timeout == -1) return;
+						if (this.timeout == -1){ 
+							
+							if (this.space <= 0) return; // cards are enougth wide to be seen well
+							this._x += (this.choosingX - this._x) / 3;
+							this._y += (this.choosingY - this._y) / 3;
+							// or else we need to move them casuse of cursors
+							this.dy = this.yy - _root._ymouse;
+							// do not do anything, if mouse not in a place
+							if (Math.abs(this.dy) > 50 || _root._xmouse <= this.xfrom - 50 || _root._xmouse >= this.xto + 50)
+								{ this.choosingX = this.xx; this.choosingY = this._yy; return; }	 
+							this.selected = (_root._xmouse >= this.selectX && _root._xmouse < this.selectXt);
+							if (this.selected)
+								{ this.choosingX = this.xx; this.choosingY = this._yy - 30; selectedItem = this.lastNumber; selectedItemX = this.xx - this.xfrom; return; }	
+							else
+								this.choosingY = this._yy;
+							if (_root._xmouse >= this.selectXt)
+								this.choosingX = this.xfrom + (selectedItemX - 100) / (selectedItem - 1) * (this.lastNumber);
+							if (_root._xmouse <= this.selectX)
+								this.choosingX = this.xfrom + selectedItemX + 100 + (this.xto - (selectedItemX + 100 + this.xfrom)) / (this.lastTotal - selectedItem) * (this.lastNumber - selectedItem - 1);
+							return;
+						}
 						if (this.timeout <= 1 && this.timeout >= 0 && this.sp_z <= .1) this.swapDepths(this.nextDepth);
 						if (this.timeout > 0) {this.timeout--; return;}
 						
@@ -91,7 +114,6 @@
 						this._y = this._yy - this._z;
 						if (Math.abs(this.dx) < stopMoveWhen && Math.abs(this.dy) < stopMoveWhen && Math.abs(this.dz) < stopMoveWhen * .2)
 							this.timeout = -1;
-							// finally swap depth
 						
 					}
 				});
@@ -107,7 +129,7 @@
 			cardObj.timeout = wait;
 			//trace(XX+'/'+YY+'/'+ZZ+'/'+wait+"   " + cardObj._name);
 		}
-		static var playerStartX = 60;
+		static var playerStartX = 80;
 		static var playerStartY = 620;
 		static function placeDecksForPlayer(playerObject:Object):Void{
 			var places = new Array(0,3,4);
@@ -117,7 +139,7 @@
 				var cardNumber = 0;
 				var moveCardNumber = 0;
 				var movenCardNumber = 0;
-				var startX = playerStartX + 120 * i;
+				var startX = playerStartX + 130 * i;
 				player.forEachCardIn(playerObject, place, function(card:Object){
 					++cardNumber;
 					var moveToX = startX + randomOffset() * 2;
@@ -150,8 +172,8 @@
 			var otherTotal = player.cardCountIn(playerObject, places.battlefield) - creatureTotal - landTotal;
 
 			var crC = 0; var lC = 0; var oC = 0; var cardNumber = 0;
-			var xFrom = 50; var xTo = 860; var yLine1 = 300; var yLine2 = 420;
-			var xTo1 = 340; var xFrom1 = 520;
+			var xFrom = 100; var xTo = 860; var yLine1 = 300; var yLine2 = 420;
+			var xTo1 = 340; var xFrom1 = 620;
 			
 			var moveCardNumber = 30;
 			player.forEachCardIn(playerObject, places.battlefield, function(ccard:Object){
@@ -161,20 +183,22 @@
 				var isLand = card.isType(ccard, typ.Land);
 				
 				if (isCreature){
-					++crC;
-					moveToX = calculateXCoord(xFrom, xTo, creatureTotal, crC);
+					//++crC;
+					moveToX = calculateXCoord(xFrom, xTo, creatureTotal-1, crC++);
 					moveToY = yLine1;
+					spaceMc(ccard.mc, xFrom, xTo, creatureTotal, crC - 1, moveToX)
 				}else{
 					moveToY = yLine2;
 					if (isLand){
-						++lC;
-						moveToX = calculateXCoord(xFrom, xTo1, landTotal, lC);
+						//++lC;
+						moveToX = calculateXCoord(xFrom, xTo1, landTotal-1, lC++);
+						spaceMc(ccard.mc, xFrom, xTo1, landTotal, lC - 1, moveToX)
 					}else{
-						++oC;
-						moveToX = calculateXCoord(xFrom1, xTo, otherTotal, oC);
+						//++oC;
+						moveToX = calculateXCoord(xFrom1, xTo, otherTotal-1, oC++);
+						spaceMc(ccard.mc, xFrom1, xTo, otherTotal, oC - 1, moveToX)
 					}
 				}
-				//trace(ccard._name + "  " +isCreature + "  " + isLand );
 				moveCard(ccard, moveToX, moveToY, moveToZ,  0);
 			});
 		}
@@ -182,12 +206,12 @@
 		static function placeHandForPlayer(playerObject:Object):Void{
 			var cardTotal = player.cardCountIn(playerObject, places.hand);
 			var cardNumber = 0;
-			var xFrom = 400;
+			var xFrom = 480;
 			var xTo = 880;
 			var moveCardNumber = 30;
 			player.forEachCardIn(playerObject, places.hand, function(card:Object){
-				++cardNumber;
-				var moveToX = calculateXCoord(xFrom, xTo, cardTotal, cardNumber);
+				;
+				var moveToX = calculateXCoord(xFrom, xTo, cardTotal - 1, cardNumber);
 				var moveToY = playerStartY;
 				var moveToZ = 0;
 				var timer = 0;
@@ -199,10 +223,57 @@
 					card.mc.sp_z = 15;			// speed of upping when card mvoes
 					card.mc._rotation = 0;
 				}
+				// card.mc.lastTotal = cardTotal - 1;
+				// card.mc.lastNumber = cardNumber;
+				// card.mc.xfrom = xFrom; card.mc.xto = xTo;
+				// card.mc.space = spaceDiff(xFrom, xTo, card.mc.lastTotal);
+				spaceMc(card.mc, xFrom, xTo, cardTotal, cardNumber, moveToX)
 				moveCard(card, moveToX, moveToY, moveToZ,  timer);
+				cardNumber ++;
 			});
 		}
+		
+		// update eactly of players place, or all of them if none paramtetr given
+		// is special pater function for 3 other
+		static function updatePlayerCardHolders(pl:Object, place:Number):Void{
+			if (place == undefined) place = -1;
+			switch (place){
+				case places.deck:
+				case places.graveyard:
+				case places.exile:
+					placeDecksForPlayer(pl);
+					break;
+				case places.hand:
+					placeHandForPlayer(pl);
+					break;
+				case places.battlefield:
+					placeBattlefield(pl);
+					break;
+				default:
+					placeDecksForPlayer(pl);
+					placeBattlefield(pl);
+					placeHandForPlayer(pl);
+					break;	
+			}
+		}
+		
 		static function calculateXCoord (xFrom, xTo, cardTotal, cardNumber):Number{
-			return xFrom + ((cardTotal > (xTo - xFrom) / 100)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + 100 * (cardTotal * (-.5) + cardNumber)));
+			return xFrom + ((spaceDiff(xFrom, xTo, cardTotal) > 0)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + 100 * (cardTotal * (-.5) + cardNumber)));
+		}
+		
+		static function spaceDiff (xFrom, xTo, cardTotal):Number{
+			return cardTotal - (xTo - xFrom) / 100;
+		}
+		
+		static function spaceMc(mc:MovieClip, xFrom, xTo, cardTotal, cardNumber, moveToX){
+			mc.lastTotal = cardTotal - 1;
+			mc.lastNumber = cardNumber;
+			mc.xfrom = xFrom; mc.xto = xTo;
+			mc.spaceStep = (xTo - xFrom) / cardTotal;
+			mc.selectX = moveToX - mc.spaceStep * .5; mc.selectXt = moveToX + mc.spaceStep * .5;
+			mc.cOffset = 50 / mc.spaceStep;
+			if (cardNumber == 0) mc.selectX -= 50;
+			if (cardNumber == cardTotal - 1) mc.selectXt += 50;
+			mc.space = spaceDiff(xFrom, xTo, mc.lastTotal);
 		}
 	}

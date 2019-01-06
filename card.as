@@ -12,10 +12,12 @@
 				case "Basic Swamp": return  createCard(cardName, colors.black, new Array(typ.Basic, typ.Land), typ.Swamp, cardHost);
 				case "Basic Mountain": return  createCard(cardName, colors.red, new Array(typ.Basic, typ.Land), typ.Mountain, cardHost);
 				
-				case "Test Creature": return createCard(cardName, colors.none, typ.Creature, typ.Beast, cardHost);
+				case "Test Creature": return createCard(cardName, colors.green, typ.Creature, typ.Beast, cardHost);
 				case "Test Wizard": return createCard(cardName, new Array(colors.white, colors.blue), typ.Creature, new Array(typ.Human, typ.Wizard), cardHost);
 				case "Test Ogre": return createCard(cardName, colors.red, typ.Creature, typ.Ogr, cardHost);
-				case "Test Dogo": return createCard(cardName, colors.green, typ.Creature, typ.Dog, cardHost);
+				case "Test Dogo": return createCard(cardName, colors.black, typ.Creature, typ.Dog, cardHost);
+				case "Test Artifact": return createCard(cardName, colors.none, typ.Artifact, new Array(), cardHost);
+				case "Test Robot": return createCard(cardName, colors.none, new Array(typ.Artifact, typ.Creature), new Array(), cardHost);
 				default: return null;
 			}
 			return null;

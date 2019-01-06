@@ -16,6 +16,7 @@
 				case green: return "Green";
 				case black: return "Black";
 				case red: return "Red";
+				case none: return "Colorless";
 				default: return "Color" + c;
 			}
 			return "????";

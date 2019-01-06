@@ -126,7 +126,7 @@
 					playerObject.cards[cardsFromDeckIndexes[i]] = cardsShuffled[i];
 					
 				consts.LOG(playerObject._name + " shuffled their deck");
-				//traceAllPlayerCardsFrom(playerObject, places.deck);
+				drawing.updatePlayerCardHolders(playerObject, places.deck);
 			}
 		
 			static function playerDrawsCards(playerObject:Object, cardCount:Number):Void{
@@ -136,6 +136,13 @@
 			}
 			static function playerPutTopCardsToGraveyard(playerObject:Object, cardCount:Number):Void{
 				playerMoveCards(playerObject, cardCount, places.deck, places.graveyard);
+			}
+			
+			static function updateViewAfterCardMove(playerObject:Object, from:Number, to:Number):Void{
+				trace("Required update for " + from + " & " + to);
+				//drawing.placeHandForPlayer(gameengine.game.getPlayer(0));
+				drawing.updatePlayerCardHolders(playerObject, to);
+				if (from != places.deck) drawing.updatePlayerCardHolders(playerObject, from);
 			}
 			
 			static function playerMoveCards(playerObject:Object, cardCount:Number, from:Number, to:Number):Boolean{
@@ -150,12 +157,15 @@
 						moveCardTo(curCard, to);
 						
 						--cardCount;
-						if (cardCount <= 0)
+						if (cardCount <= 0){
+							updateViewAfterCardMove(playerObject, from, to);
 							return true;
+						}
 					}
 				}
 				if (from == 0 && to == 1)
 					consts.LOG(playerObject._name + " need to draw (" + cardCount + ") more card(s), but hs deck is empty!" );
+				updateViewAfterCardMove(playerObject, from, to);
 				return false;
 			}
 			
@@ -170,8 +180,18 @@
 			}
 			
 			static function playerMoveExactCards(playerObject:Object, cards:Array, to:Number):Void{
-				for (var i = 0; i < cards.length; ++i)
+				var cardsWereIn = new Array();
+				for (var i = 0; i < cards.length; ++i){
+					var addPlace = cards[i].isin; var needAdd = true;	// check all places where from was cards moved to update them later
+					for (var j = 0; j < cardsWereIn.length; ++j)
+						if (cardsWereIn[j] == addPlace)
+							needAdd = false;
+					if (needAdd) cardsWereIn.push(addPlace);
+					
 					moveCardTo(cards[i], to);
+				}
+				for (var i = 0; i < cardsWereIn.length; ++i)
+					updateViewAfterCardMove(playerObject, cardsWereIn[i], to);
 			}
 			
 			static function playerTapsPermanent(playerObject:Object, permanent:Object):Boolean{
@@ -182,18 +202,20 @@
 			}
 			
 			static function playerCastASpell(playerObject:Object, cardObj:Object):Boolean{
+				var cardwasin = cardObj.isin;
 				consts.LOG(playerObject._name + " select " + cardObj._name + " to cast");
 				var canBeCasted = playerObject.canCast(cardObj);
 				if (!canBeCasted) return false;
 				consts.LOG(cardObj._name + " can be casted. ");
 				// lands has no cost, can not be countered, they do not went to stack
 				var isLandDrop = (card.isType(cardObj, typ.Land));
-				if (!isLandDrop){
-					consts.LOG("You cannot play nonlands, because fuck you, tahts why.");
-					return false;
-				}
+				// if (!isLandDrop){
+					// consts.LOG("You cannot play nonlands, because fuck you, tahts why.");
+					// return false;
+				// }
 				// landdrop case
 				moveCardTo(cardObj, places.battlefield);
+				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
 				return true;
 			}
 			

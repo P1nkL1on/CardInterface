@@ -3,6 +3,7 @@
 	class gameengine {
 	
 		static function test(){
+			var map = back.create_obj(back.base_layer(), "map" );
 			var g = initialiseGame(
 				new Array(
 					"Ivan", 
@@ -15,11 +16,12 @@
 					7 + random(10), "Basic Forest", 
 					7 + random(10), "Basic Mountain",
 					7 + random(10), "Basic Swamp",
-					3, "Test Creature",
-					3, "Test Wizard",
-					3, "Test Dogo",
-					3, "Test Ogre"), 
-					
+					4, "Test Creature",
+					4, "Test Wizard",
+					4, "Test Dogo",
+					4, "Test Ogre",
+					4, "Test Artifact",
+					4, "Test Robot"), 
 					new Array(20, "Basic Forest")
 				));
 			
