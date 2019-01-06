@@ -105,15 +105,35 @@
 			}
 			
 			// force a target player to shuffle his deck
+			
 			static function playerShuflesDeck (playerObject:Object):Void{
+				playerDoWithCads(playerObject, places.deck, randomlyShuffleArray);
+			}
+			static function playerShuflesHand (playerObject:Object):Void{
+				playerDoWithCads(playerObject, places.hand, randomlyShuffleArray);
+			}
+			
+			static function playerDoWithCads (playerObject:Object, where:Number, action):Void{
 				var cardsFromDeckIndexes = new Array();
 				var cardsFromDeck = new Array();
 				for (var i = 0; i < playerObject.cards.length; ++i)
-					if (playerObject.cards[i].isin == places.deck){
+					if (playerObject.cards[i].isin == where){
 						cardsFromDeck.push(playerObject.cards[i]);
 						cardsFromDeckIndexes.push(i);
-						playerObject.cards[i].isVisibleTo = new Array(); // make a acrd invincible
-					}
+						playerObject.cards[i].isVisibleTo = new Array(); 
+						}
+						
+				var cardsShuffled = action(cardsFromDeck); 
+				
+				for (var i = 0; i < cardsFromDeckIndexes.length; ++i)
+					playerObject.cards[cardsFromDeckIndexes[i]] = cardsShuffled[i];
+					
+				consts.LOG(playerObject._name + " shuffled their " + places.placeToString(where));
+				drawing.updatePlayerCardHolders(playerObject, where);
+			
+			}
+			
+			static function randomlyShuffleArray(cardsFromDeck:Array):Array{
 				var needLength = cardsFromDeck.length;
 				var cardsShuffled = new Array();
 				while(cardsShuffled.length < needLength)
@@ -121,12 +141,13 @@
 				   var rnd = Math.floor( Math.random() * cardsFromDeck.length );
 				   cardsShuffled.push( cardsFromDeck[rnd] );
 				   cardsFromDeck.splice( rnd, 1 ); // remove the random result
-				}		
-				for (var i = 0; i < cardsFromDeckIndexes.length; ++i)
-					playerObject.cards[cardsFromDeckIndexes[i]] = cardsShuffled[i];
-					
-				consts.LOG(playerObject._name + " shuffled their deck");
-				drawing.updatePlayerCardHolders(playerObject, places.deck);
+				}	
+				return cardsShuffled;
+			}
+			
+			static function sortArray(cardsFromDeck:Array):Array{
+				
+				return cardsFromDeck;
 			}
 		
 			static function playerDrawsCards(playerObject:Object, cardCount:Number):Void{

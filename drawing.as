@@ -80,7 +80,7 @@
 							
 							if (this.space <= 0) return; // cards are enougth wide to be seen well
 							this._x += (this.choosingX - this._x) / 3;
-							this._y += (this.choosingY - this._y) / 3;
+							this._y += (this.choosingY - this._y) / 8;
 							// or else we need to move them casuse of cursors
 							this.dy = this.yy - _root._ymouse;
 							// do not do anything, if mouse not in a place
@@ -95,6 +95,7 @@
 								this.choosingX = this.xfrom + (selectedItemX - 100) / (selectedItem - 1) * (this.lastNumber);
 							if (_root._xmouse <= this.selectX)
 								this.choosingX = this.xfrom + selectedItemX + 100 + (this.xto - (selectedItemX + 100 + this.xfrom)) / (this.lastTotal - selectedItem) * (this.lastNumber - selectedItem - 1);
+							if (Math.abs(this.choosingX - this.xx) > 100) this.choosingX = this.xx;
 							return;
 						}
 						if (this.timeout <= 1 && this.timeout >= 0 && this.sp_z <= .1) this.swapDepths(this.nextDepth);
@@ -124,6 +125,7 @@
 				return;
 			cardObj = cardObj.mc;
 			cardObj.xx = XX; cardObj.yy = YY; cardObj.zz = ZZ;
+			cardObj.choosingX = XX; cardObj.choosingY = YY;
 			cardObj.nextDepth = Math.round(cardObj.xx + cardObj.yy * 15 + cardObj.zz * 100)
 			//cardObj.swapDepths();
 			cardObj.timeout = wait;
@@ -172,7 +174,7 @@
 			var otherTotal = player.cardCountIn(playerObject, places.battlefield) - creatureTotal - landTotal;
 
 			var crC = 0; var lC = 0; var oC = 0; var cardNumber = 0;
-			var xFrom = 100; var xTo = 860; var yLine1 = 300; var yLine2 = 420;
+			var xFrom = 100; var xTo = 860; var yLine1 = 350; var yLine2 = 470;
 			var xTo1 = 340; var xFrom1 = 620;
 			
 			var moveCardNumber = 30;
@@ -269,7 +271,7 @@
 			mc.lastTotal = cardTotal - 1;
 			mc.lastNumber = cardNumber;
 			mc.xfrom = xFrom; mc.xto = xTo;
-			mc.spaceStep = (xTo - xFrom) / cardTotal;
+			mc.spaceStep = (xTo - xFrom) / (cardTotal - 1);
 			mc.selectX = moveToX - mc.spaceStep * .5; mc.selectXt = moveToX + mc.spaceStep * .5;
 			mc.cOffset = 50 / mc.spaceStep;
 			if (cardNumber == 0) mc.selectX -= 50;
