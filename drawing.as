@@ -77,8 +77,11 @@
 					mc.onEnterFrame = function (){
 						//trace(this.timeout)
 						if (this.timeout == -1){ 
-							
-							if (this.space <= 0) return; // cards are enougth wide to be seen well
+							if (this.selected && Key.isDown(1)){
+								this._rotation = random(31) - 15;
+								createManaAtCardMcAndMoveToManaPool(this, 1+random(5));
+							}
+							this.selected = false;
 							this._x += (this.choosingX - this._x) / 3;
 							this._y += (this.choosingY - this._y) / 8;
 							// or else we need to move them casuse of cursors
@@ -87,6 +90,7 @@
 							if (Math.abs(this.dy) > 50 || _root._xmouse <= this.xfrom - 50 || _root._xmouse >= this.xto + 50)
 								{ this.choosingX = this.xx; this.choosingY = this._yy; return; }	 
 							this.selected = (_root._xmouse >= this.selectX && _root._xmouse < this.selectXt);
+							if (this.space <= 0) return; // cards are enougth wide to be seen well
 							if (this.selected)
 								{ this.choosingX = this.xx; this.choosingY = this._yy - 30; selectedItem = this.lastNumber; selectedItemX = this.xx - this.xfrom; return; }	
 							else
@@ -277,5 +281,58 @@
 			if (cardNumber == 0) mc.selectX -= 50;
 			if (cardNumber == cardTotal - 1) mc.selectXt += 50;
 			mc.space = spaceDiff(xFrom, xTo, mc.lastTotal);
+		}
+		
+		
+		
+		
+		// mana problems
+		static var manaSpdMlt = 150;
+		static var nowmana = 0;
+		static function createManaAtCard(mc:MovieClip, manaColor:Number):MovieClip{
+			var mn = back.create_obj(back.effect_layer(), "mana", "manadoteffect" );
+			nowmana++;
+			mn._x = mc.xx;
+			mn._y = mc.yy;
+			mn.gotoX = mn._x; mn.gotoY = mn._y;	 mn.sp_x = mn.sp_y = 0; mn.moveTimer = 0;
+			mn.gotoAndStop(manaColor + 1);
+			mn.onEnterFrame = function (){
+				if (this.moveTimer < 1) return;
+				this.moveTimer++;
+				// stop move when reach target
+				if (Math.abs(this._x - this.gotoX) + Math.abs(this._y - this.gotoY) < 5){ 
+					if (this.destroyOnFinish) {nowmana --; this.removeMovieClip();}
+					this.moveTimer = 0; this.sp_x = 0; this.sp_y = 0; return;
+				}
+				//
+				this._x += this.sp_x; this._y += this.sp_y;
+				this.sp_x += (this.gotoX - this._x) / manaSpdMlt * .3;
+				this.sp_y += (this.gotoY - this._y) / manaSpdMlt;
+				this.attepdspd = Math.max(2, 100 - this.moveTimer);
+				this._x += (this.gotoX - this._x) / this.attepdspd;
+				this._y += (this.gotoY - this._y) / this.attepdspd;
+				if (random(nowmana) > 5) return;
+				this.t = back.create_obj(back.effect_layer(), "mana_trace");
+				this.swapDepths(this.t)
+				this.t._x = this._x; this.t._y = this._y; this.t.gotoAndStop(this._currentframe);
+			}
+			return mn;
+		}
+		static var manaPoolX = 435;
+		static var manaPoolY = 515;
+		
+		static function createManaAtCardAndMoveToManaPool(cardObj:Object, manaColor:Number):MovieClip{
+			return createManaAtCardMcAndMoveToManaPool(cardObj.mc, manaColor);
+		}
+		
+		static function createManaAtCardMcAndMoveToManaPool(mc:MovieClip, manaColor:Number):MovieClip{
+			var mn = createManaAtCard(mc, manaColor);
+			mn.gotoX = manaPoolX + manaColor * 20;
+			mn.gotoY = manaPoolY;
+			mn.moveTimer = 1;
+			mn.destroyOnFinish = true;
+			mn.sp_y = -15;
+			mn.sp_x = (random(100) - 50) * .1;
+			return mn;
 		}
 	}

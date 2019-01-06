@@ -5,12 +5,14 @@
 		
 	
 		static function createPlayer(
+			gameInstance:Object, // connection to a game, player is playing
 			playerIndex:Number, // is player index in gameEngine.as machine
 			playerName:String,
 			playerCards:Array	// array of cards
 		):Object 	// return the player
 		{
 			var newPlayer = new Object();
+			newPlayer.game = gameInstance;
 			newPlayer.PID = playerIndex;						// special idnex
 			newPlayer.health = consts.playerStartingLifeTotal;	
 			newPlayer._name = playerName;
@@ -25,38 +27,48 @@
 					newPlayer.cards.push(card.createCardByName(cardName, newPlayer));
 			}
 			
-			// also parameters
-			newPlayer.canCastSpellFilters = new Array(); // where from you can cast spells?  by default
-			newPlayer.canCastSpellFilters.push(			// cast ANY (-1) SPELL //  from HAND
-				function (spell:Object, playerO:Object):Boolean { 
-					if (spell.isin != places.hand){
-						consts.LOG("..Rule0 : can't be casted from somewhere else than 'hand'");
-						return false;	// spell can be casted from hand only
-					}
-					if (abilities.has(spell, abilities.flash)){
-						consts.LOG("..Rule0 : can be casted at any time and any turn, cause has 'flash' ability");
-						return true; 
-					}					// can be cast at any point of game
-					var isMyTurn = (gameengine.game.currentTurnPlayerIndex == playerO.PID); 
-					
-					var phase = gameengine.game.phase;
-					// can be only casted in main n second main during your turn
-					var res = (isMyTurn && (phase == gameengine.main || phase == gameengine.secondMain));
-					if (!res) consts.LOG("..Rule0 : can be casted only during your main phases");
-					return res;
-				}
-			);
+			// default filters, which allow to play a card from where and when
+			newPlayer.canCastSpellFilters = defaultcanCastFilter();
 			// if at least one rule resolve, than you can cast it
 			newPlayer.canCast = function (cardObj:Object):Boolean { 
 				for (var i = 0; i < this.canCastSpellFilters.length; ++i)
-					if (this.canCastSpellFilters[i](cardObj, this) == true){
-						consts.LOG("...." + cardObj._name  + " casting is accepted by Rule" + (i));
-						return true;
+					if (this.canCastSpellFilters[i](cardObj, this) == false){
+						consts.LOG(cardObj._name  + " casting is rejected");
+						return false;
 					}
-				return false; // no way to cast!
+				consts.LOG(cardObj._name  + " casting is available");
+				return true; // no way to cast!
 			}
 			
 			return newPlayer;
+		}
+		
+		static function defaultcanCastFilter():Array{
+			var res = new Array(); // where from you can cast spells?  by default
+			res.push(			// cast ANY (-1) SPELL //  from HAND
+				function (spell:Object, playerO:Object):Boolean { 
+					var isMyTurn = (gameengine.game.currentTurnPlayerIndex == playerO.PID); 
+					var phase = gameengine.game.phase;
+					var isMainPhase = (phase == gameengine.main || phase == gameengine.secondMain);
+					var hasFlash = abilities.has(spell, abilities.flash);
+					var isInstant = card.isType(spell, typ.Instant);
+					var isInHand = spell.isin == places.hand;
+					
+					consts.LOG(spell._name  + " is :");
+					consts.LOG("  your turn?     " + isMyTurn);
+					consts.LOG("  main phase?    " + isMainPhase);
+					consts.LOG("  is instant?    " + isInstant);
+					consts.LOG("  has flash?     " + hasFlash);
+					return (isInstant || hasFlash || (isMyTurn && isMainPhase));
+				}
+			);
+			// now you can not play creatures just because
+			res.push(function (spell:Object, playerO:Object):Boolean 
+				{ 
+					return !(card.isType(spell, typ.Creature)); 
+				}
+			);
+			return res;
 		}
 		
 		// NORMAL FUNCTIONS 
@@ -144,11 +156,6 @@
 				}	
 				return cardsShuffled;
 			}
-			
-			static function sortArray(cardsFromDeck:Array):Array{
-				
-				return cardsFromDeck;
-			}
 		
 			static function playerDrawsCards(playerObject:Object, cardCount:Number):Void{
 				var deckEmpty = playerMoveCards(playerObject, cardCount, places.deck, places.hand);
@@ -160,8 +167,7 @@
 			}
 			
 			static function updateViewAfterCardMove(playerObject:Object, from:Number, to:Number):Void{
-				trace("Required update for " + from + " & " + to);
-				//drawing.placeHandForPlayer(gameengine.game.getPlayer(0));
+				trace("Required update for " + places.placeToString(from) + " & " + places.placeToString(to));
 				drawing.updatePlayerCardHolders(playerObject, to);
 				if (from != places.deck) drawing.updatePlayerCardHolders(playerObject, from);
 			}
@@ -175,7 +181,7 @@
 					++nowCardInd;
 					curCard = playerObject.cards[nowCardInd];
 					if (curCard.isin == from){
-						moveCardTo(curCard, to);
+						moveCardTo(playerObject, curCard, to);
 						
 						--cardCount;
 						if (cardCount <= 0){
@@ -191,11 +197,11 @@
 			}
 			
 			// move a card of player from somewhere to somewhere
-			static function moveCardTo(curCard:Object, to:Number):Void{
+			static function moveCardTo(playerOb:Object, curCard:Object, to:Number):Void{
 				var wasIn = curCard.isin;
 				curCard.isin = to;
 				if (to == places.hand) curCard.isVisibleTo.push(curCard.host.PID);
-				if (to >= 2) curCard.isVisibleTo = gameengine.game.allPlayersIDS;
+				if (to >= 2) curCard.isVisibleTo = playerOb.game.allPlayersIDS;
 				curCard.update();
 				consts.LOG(curCard.host._name + " move " + card.cardNamePIDVisible(curCard) + "  " + places.placeToString(wasIn) +" -> "+ places.placeToString(to));
 			}
@@ -209,7 +215,7 @@
 							needAdd = false;
 					if (needAdd) cardsWereIn.push(addPlace);
 					
-					moveCardTo(cards[i], to);
+					moveCardTo(playerObject, cards[i], to);
 				}
 				for (var i = 0; i < cardsWereIn.length; ++i)
 					updateViewAfterCardMove(playerObject, cardsWereIn[i], to);
@@ -227,17 +233,20 @@
 				consts.LOG(playerObject._name + " select " + cardObj._name + " to cast");
 				var canBeCasted = playerObject.canCast(cardObj);
 				if (!canBeCasted) return false;
-				consts.LOG(cardObj._name + " can be casted. ");
+				
 				// lands has no cost, can not be countered, they do not went to stack
+				
 				var isLandDrop = (card.isType(cardObj, typ.Land));
-				// if (!isLandDrop){
-					// consts.LOG("You cannot play nonlands, because fuck you, tahts why.");
-					// return false;
-				// }
-				// landdrop case
-				moveCardTo(cardObj, places.battlefield);
+				// do not place into stack, so just put a land to the battlefield
+				if (isLandDrop)
+					moveCardTo(playerObject, cardObj, places.battlefield);
+				else{
+				
+					moveCardTo(playerObject, cardObj, places.stack);
+				}
+					
 				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
-				return true;
+				return true;//?
 			}
 			
 		// TRACE FUNCTIONS

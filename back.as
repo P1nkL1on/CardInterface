@@ -1,6 +1,7 @@
 
 	class back{
 		static var layer = null;
+		static var effectlayer = null;
 		
 		static var objs = new Array();
 		
@@ -35,5 +36,10 @@
 		
 		static function base_layer (){ 
 			return (exists())? layer : create_layer();
+		}
+		
+		
+		static function effect_layer (){ 
+			return (effectlayer != null)? effectlayer : (effectlayer = create_obj(undefined, "empty", "effectlayer"));
 		}
 	}

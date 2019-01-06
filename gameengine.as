@@ -53,7 +53,7 @@
 			newGame.allPlayersIDS = new Array();
 			newGame.players = new Array(); // player objects array
 			for (var i = 0; i < players.length; ++i){
-				newGame.players.push(player.createPlayer(i, players[i], playerCards[i]));
+				newGame.players.push(player.createPlayer(newGame, i, players[i], playerCards[i]));
 				newGame.allPlayersIDS.push(i);
 			}
 			newGame.playerCount = newGame.players.length; 					// number of players

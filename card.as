@@ -18,6 +18,8 @@
 				case "Test Dogo": return createCard(cardName, colors.black, typ.Creature, typ.Dog, cardHost);
 				case "Test Artifact": return createCard(cardName, colors.none, typ.Artifact, new Array(), cardHost);
 				case "Test Robot": return createCard(cardName, colors.none, new Array(typ.Artifact, typ.Creature), new Array(), cardHost);
+				
+				//case "Divination": return createCard(cardName, colors.blue, typ.Sorcery, new Array(), cardHost, new Array(),);
 				default: return null;
 			}
 			return null;
@@ -34,7 +36,7 @@
 			cardSubType,   // same number or array   watch "typ.as", like {50, 51}, {5102} == Basic Land -- Island
 			cardHost:Object,	// instance of PlayerObject. Sets to 'null' if none player given
 			cardAbilities,		// array of functions
-			cardPlayCost:Object	// cost of playing a card. if none given, card will have no cost, like a Land
+			cardCastCost:Object	// cost of playing a card. if none given, card will have no cost, like a Land
 			
 		):Object // return a card object
 		{
@@ -66,7 +68,12 @@
 				newCard.isVisibleTo = new Array();	// is visible for players with PIDS, {2,3,4} - visible to third, 4d, 5th players, where 3rd is owner, for example
 													// default it is none, cause card is invisible in deck.
 			// CARD COST
-				newCard.cost = (cardPlayCost != undefined)? cardPlayCost : cost.noCost();
+				newCard.castingCost = new Array();
+				newCard.castingCost.push((cardCastCost != undefined)? cardCastCost : cost.noCost());
+				newCard.castingFrom = new Array();
+				newCard.castingFrom.push (places.hand);
+				// for example:
+				// cCost = {5, 6},, cFrom = {hand, graveyard} -- can be cast from hand for 5, from graveyard for 6
 			
 			// SOME PARAMETERS BASED ON A TYPE
 				newCard.abilities = new Array(); // zero array or card abilities
