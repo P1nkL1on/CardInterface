@@ -13,12 +13,13 @@
 		{
 			var newPlayer = new Object();
 			newPlayer.game = gameInstance;
-			newPlayer.PID = playerIndex;						// special idnex
+			newPlayer.PID = playerIndex;						// special personal idnex for rules
 			newPlayer.health = consts.playerStartingLifeTotal;	
 			newPlayer._name = playerName;
 			//transform from ' playerCards = new Array(14, "Island", 10, "Varmountain"); ' to real card examples
 			newPlayer.cards = new Array();
 			newPlayer.timer = 0;
+			// pushing a card one by one to deck, to avaoid a memory linkage
 			for (var i = 0; i < playerCards.length; i += 2){
 				var cardCount = playerCards[i];
 				var cardName = playerCards[i + 1];
@@ -26,50 +27,12 @@
 				while (cardCount --)
 					newPlayer.cards.push(card.createCardByName(cardName, newPlayer));
 			}
-			
-			// default filters, which allow to play a card from where and when
-			newPlayer.canCastSpellFilters = defaultcanCastFilter();
-			// if at least one rule resolve, than you can cast it
-			newPlayer.canCast = function (cardObj:Object):Boolean { 
-				for (var i = 0; i < this.canCastSpellFilters.length; ++i)
-					if (this.canCastSpellFilters[i](cardObj, this) == false){
-						consts.LOG(cardObj._name  + " casting is rejected");
-						return false;
-					}
-				consts.LOG(cardObj._name  + " casting is available");
-				return true; // no way to cast!
-			}
-			
+			newPlayer.cardPlayingRules = rule.defaultPlayerPlayCardRules(newPlayer);
+			rule.addCanPlayResolveFunction (newPlayer);
 			return newPlayer;
 		}
 		
-		static function defaultcanCastFilter():Array{
-			var res = new Array(); // where from you can cast spells?  by default
-			res.push(			// cast ANY (-1) SPELL //  from HAND
-				function (spell:Object, playerO:Object):Boolean { 
-					var isMyTurn = (gameengine.game.currentTurnPlayerIndex == playerO.PID); 
-					var phase = gameengine.game.phase;
-					var isMainPhase = (phase == gameengine.main || phase == gameengine.secondMain);
-					var hasFlash = abilities.has(spell, abilities.flash);
-					var isInstant = card.isType(spell, typ.Instant);
-					var isInHand = spell.isin == places.hand;
-					
-					consts.LOG(spell._name  + " is :");
-					consts.LOG("  your turn?     " + isMyTurn);
-					consts.LOG("  main phase?    " + isMainPhase);
-					consts.LOG("  is instant?    " + isInstant);
-					consts.LOG("  has flash?     " + hasFlash);
-					return (isInstant || hasFlash || (isMyTurn && isMainPhase));
-				}
-			);
-			// now you can not play creatures just because
-			res.push(function (spell:Object, playerO:Object):Boolean 
-				{ 
-					return !(card.isType(spell, typ.Creature)); 
-				}
-			);
-			return res;
-		}
+		
 		
 		// NORMAL FUNCTIONS 
 			// for each card in players hand/graveyard/deck, do sometihng(card)
@@ -231,17 +194,15 @@
 			static function playerCastASpell(playerObject:Object, cardObj:Object):Boolean{
 				var cardwasin = cardObj.isin;
 				consts.LOG(playerObject._name + " select " + cardObj._name + " to cast");
+				
 				var canBeCasted = playerObject.canCast(cardObj);
 				if (!canBeCasted) return false;
-				
-				// lands has no cost, can not be countered, they do not went to stack
-				
-				var isLandDrop = (card.isType(cardObj, typ.Land));
+	
 				// do not place into stack, so just put a land to the battlefield
+				var isLandDrop = (card.isType(cardObj, typ.Land));
 				if (isLandDrop)
 					moveCardTo(playerObject, cardObj, places.battlefield);
 				else{
-				
 					moveCardTo(playerObject, cardObj, places.stack);
 				}
 					

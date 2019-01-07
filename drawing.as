@@ -83,6 +83,7 @@
 							// glow border of needed color
 							this.gotoFr = 1; if (this.mouseOver) this.gotoFr = 2; if (this.selected) this.gotoFr = 3;
 							if (this.glow._currentframe != this.gotoFr) this.glow.gotoAndStop(this.gotoFr);
+							this.mouseOver = false;
 							
 							// is mouse i zone of hand, battlefield, etc
 							this._x += (this.choosingX - this._x) / 3;
