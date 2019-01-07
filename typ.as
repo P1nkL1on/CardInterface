@@ -72,4 +72,21 @@
 			}
 			return "????";
 		}
+		
+		static function gamePhaseToString(t){
+			switch (t){
+				case gameengine.untap: return "untap";
+				case gameengine.unkeep: return "unkeep";
+				case gameengine.draw: return "draw";
+				case gameengine.main: return "main";
+				case gameengine.declareattackers: return "declare attackers";
+				case gameengine.declareblockers: return "declare blockers";
+				case gameengine.damage: return "damage";
+				case gameengine.secondMain: return "second main";
+				case gameengine.endstep: return "end";
+				
+				default: return "Phase"+t;
+			}
+			return "????";
+		}
 	}

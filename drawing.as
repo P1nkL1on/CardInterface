@@ -43,8 +43,9 @@
 		}
 		
 		static function traceToNewMovieClip(cardObject:Object):MovieClip{
-			var newCard = back.create_obj(back.base_layer(), "card" );
-			traceToMovieClip(cardObject, newCard);
+			var newCard = back.create_obj(back.base_layer(), "card" );	// cards are on back stage
+			newCard.orig = cardObject;				// link to a card object, that was done from
+			traceToMovieClip(cardObject, newCard);  // draw a card
 			return newCard;
 		}
 		static var stopMoveWhen = 1;
@@ -57,9 +58,9 @@
 				var cardTotal = player.cardCountIn(playerObject, place);
 				var xFrom = 50; var xTo = 550;
 				
-				player.forEachCardIn(playerObject, place, function(card:Object){ 
-					var mc = traceToNewMovieClip(card);	
-					card.mc = mc;
+				player.forEachCardIn(playerObject, place, function(ccard:Object){ 
+					var mc = traceToNewMovieClip(ccard);	
+					ccard.mc = mc;
 					mc._x = (x == undefined)? playerStartX : x; mc._y = (y == undefined)? (mc._height / 2 - 10) : y;
 					mc.xx = playerStartX; mc.yy = 0; mc.zz = 0;	// global worl coordinations
 					mc._rotation = (random(9)-4) / 3;
@@ -79,7 +80,7 @@
 						if (this.timeout == -1){ 
 							// there is no card choosing in Deck!
 							if (this.indeck == true) return;
-							
+							if (this.mouseOver) card.traceCardInfoToText(this.orig);
 							// glow border of needed color
 							this.gotoFr = 1; if (this.mouseOver) this.gotoFr = 2; if (this.selected) this.gotoFr = 3;
 							if (this.glow._currentframe != this.gotoFr) this.glow.gotoAndStop(this.gotoFr);

@@ -79,7 +79,7 @@
 				newCard.abilities = new Array(); // zero array or card abilities
 				if (cardAbilities != undefined) for (var i = 0; i < cardAbilities.length; ++i) newCard.abilities.push(cardAbilities[i]); // add all abilities
 				newCard.asCreature = null;
-				if (newCard.isType(typ.Creature)){
+				if (card.isType(newCard, typ.Creature)){
 					newCard.everWasCreature = true; // to check a transofmation from land to creature and back
 					newCard.asCreature = defaultStats.createAsCreatureObject(cardName);
 				}
@@ -112,10 +112,18 @@
 			return ((vis == unseen)? "" : newCard._name) + " " + cardPID(newCard) + " " + vis;
 		}
 		static function cardNameTypeColorCostOwnerToString(newCard:Object):String{
-			return ("'"+newCard._name+"' has " + cost.costToString(newCard.cost)) + 
-			(", is  " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard)+", owned by " + newCard.host._name);
+			return ("'"+newCard._name+"' is  " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard)+", owned by " + newCard.host._name+", " 
+					+  cost.costToString(newCard.castingCost, newCard.castingFrom));
 		}
-		
+		static function traceCardInfoToText(newCard):Void{
+			var to = newCard.host.game.infoTextBox;
+			to.text = "";
+			to.text += "'" + newCard._name +"'  " + cardPID(newCard) + "\n";
+			to.text += "is a " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard) + "\n";
+			if (newCard.asCreature != null)
+				to.text += "has base stats " + newCard.asCreature.baseStats() + " (power/toughness)\n";
+			to.text += "owned by " + newCard.host._name;
+		}
 		
 		
 		

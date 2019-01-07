@@ -29,14 +29,15 @@
 			res.ruleType = ruleType;
 			res.ruleLong = ruleLong;
 			if (source != undefined) res.source = source; else res.source = gameLogick;
-			
 			// parameters special
 			res.parameters = consts.makeNumberArray(parameters);
-			// if it is casting rule, than ad it func
-			//if (res.ruleType >= castRulesFrom && res.ruleType <= castRuleTo);
-			//	res.checkCastingAvailable = checkFunctions[res.ruleType - castRulesFrom];
-				
 			return res;
+		}
+		
+		static function ruleToString(rO:Object):String{
+			var isP = (rO.ruleLong == permanent);
+			var isPs = timeToString(rO.ruleLong) + " ";
+			return rO.host._name + " " + ((isP)? isPs : "") + rO.description + ((!isP)? isPs : " ") + "caused by " + rO.source._name;
 		}
 		
 		static var gameLogick = new Object();
@@ -45,49 +46,69 @@
 		static var untilTurnEnd = 100;
 		
 		
+		static function timeToString(tim:Number):String{
+			switch (tim){
+				case permanent: return "permanently";
+				case untilTurnEnd: return "until turn end";
+				default: break;
+			}
+			return "?time?" + tim;
+		}
+		
+		
 		// acceptance
 		static var playerCanLandDropFromX = 1000;
 		static var playerCanCastAnySpellFromX = 1001;
 		static var playerCanPlayCardsDuringHisTurnAtPhaseX = 1002;
 		static var playerCanAlwaysCastSpellTypeX = 1003;
 		static var playerCanAlwaysCastSpellWithAbilityX = 1004;
+		
+		static var playerCannotPlayNonLandCards = -1000;
+		
 		static var castRulesFrom = 1000;
 		static var castRuleTo = 1100;
 		// . . . . .
 		
-		static var checkFunctions = new Array(
-			// 1000
-			function (rO:Object, cardObj:Object):Number {  	// for lands
+		// rO - is a rule
+		static function RuleApply (rO:Object,p2,p3,p4,p5){
+			var cardObj = p2;
+			
+			if (rO.ruleType == playerCanLandDropFromX){
 				var isLand = (card.isType(cardObj, typ.Land));
 				if (!isLand) return 0;
 				if (cardObj.isin == rO.parameters[0]) // if it is this direct place
 					return 1;
 				return 0; // this rule can not reject
-			},
-			// 1001
-			function (rO:Object, cardObj:Object):Number { 	// for non-lands
-				var isLand = (card.isType(cardObj, typ.Land));
-				if (isLand) return 0;
-				if (cardObj.isin == rO.parameters[0]) // if it is this direct place
-					return 1;
-				return 0;
-			},
+			};
+			if (rO.ruleType == playerCanCastAnySpellFromX){
+					var isLand = (card.isType(cardObj, typ.Land));
+					if (isLand) return 0;
+					if (cardObj.isin == rO.parameters[0]) // if it is this direct place
+						return 1;
+					return 0;
+			}
 			// 1002
-			function (rO:Object, cardObject:Object):Number { 	// for non-lands & lands
+			if (rO.ruleType == playerCanPlayCardsDuringHisTurnAtPhaseX){
 				var isMyTurn = (rO.host.game.currentTurnPlayerIndex == rO.host.PID); 
 				var phase = rO.host.game.phase;
 				var isNeedPhase = (phase == rO.parameters[0]);
 				return 1 * (isMyTurn & isNeedPhase);
-			},
-			//1003
-			function (rO:Object, cardObject:Object):Number{
-				return 1 * card.isType(cardObject, rO.parameters[0]);
-			},
-			//1004
-			function (rO:Object, cardObject:Object):Number{
-				return 1 * abilities.has(cardObject, rO.parameters[0]);
 			}
-		);
+			//1003
+			if (rO.ruleType == playerCanAlwaysCastSpellTypeX){
+				return 1 * card.isType(cardObj, rO.parameters[0]);
+			}
+			//1004
+			if (rO.ruleType == playerCanAlwaysCastSpellWithAbilityX){
+				return 1 * abilities.has(cardObj, rO.parameters[0]);
+			}
+			
+			//-1000
+			if (rO.ruleType == playerCannotPlayNonLandCards){
+				return -1 * !(card.isType(cardObj, typ.Land));
+			}
+			return 0;
+		}
 		
 		static function r1(rO:Object, cardObj:Object):Number {  	// for lands
 			var isLand = (card.isType(cardObj, typ.Land));
@@ -99,12 +120,16 @@
 		
 		static function defaultPlayerPlayCardRules(playerHost:Object):Array{
 			var res = new Array();
-			res.push(createRule(playerHost, "Can play lands from hand", playerCanLandDropFromX, permanent, places.hand));
-			res.push(createRule(playerHost, "Can cast spells from hand", playerCanCastAnySpellFromX, permanent, places.hand));
-			res.push(createRule(playerHost, "Can play cards from hand during his main phase", playerCanPlayCardsDuringHisTurnAtPhaseX, permanent, gameengine.main));
-			res.push(createRule(playerHost, "Can play cards from hand during his second main phase", playerCanPlayCardsDuringHisTurnAtPhaseX, permanent, gameengine.secondMain));
-			res.push(createRule(playerHost, "Can cast instants any time", playerCanAlwaysCastSpellTypeX, permanent, typ.Instant));
-			res.push(createRule(playerHost, "Can cast spells with flash any time he can cast instant", playerCanAlwaysCastSpellWithAbilityX, permanent, abilities.flash));
+			res.push(createRule(playerHost, "can play lands from hand", playerCanLandDropFromX, permanent, places.hand));
+			res.push(createRule(playerHost, "can cast spells from hand", playerCanCastAnySpellFromX, permanent, places.hand));
+			res.push(createRule(playerHost, "can play cards from hand during his main phase", playerCanPlayCardsDuringHisTurnAtPhaseX, permanent, gameengine.main));
+			res.push(createRule(playerHost, "can play cards from hand during his second main phase", playerCanPlayCardsDuringHisTurnAtPhaseX, permanent, gameengine.secondMain));
+			res.push(createRule(playerHost, "can cast instants any time", playerCanAlwaysCastSpellTypeX, permanent, typ.Instant));
+			res.push(createRule(playerHost, "can cast spells with flash any time he can cast instant", playerCanAlwaysCastSpellWithAbilityX, permanent, abilities.flash));
+			
+			var heh = new Object();
+			heh._name = "Stupid author";
+			res.push(createRule(playerHost, "can not play non-land cards", playerCannotPlayNonLandCards, permanent, new Array(), heh));
 			return res;
 		}
 		
@@ -112,16 +137,34 @@
 		static function addCanPlayResolveFunction(playerHost:Object):Void{
 			playerHost.canCast = function(cardObject:Object):Boolean{
 				// . . . 
+				var acceptance = new Array();
+				var finalScore = 0;
 				for (var i = 0; i < this.cardPlayingRules.length; ++i){
 					var curRule = this.cardPlayingRules[i];
-					if (curRule.ruleType < castRulesFrom || curRule.ruleType > castRuleTo){ 
-						consts.LOG("X  Error: rule has no cast checking function!  "+ curRule.description);
+					if (Math.abs(curRule.ruleType) < castRulesFrom || Math.abs(curRule.ruleType) > castRuleTo){ 
+						//consts.LOG("X  Error: rule has no cast checking function!  "+ curRule.description);
 						continue;
 					}
-					var ruleRes = (checkFunctions[curRule.ruleType - castRulesFrom])(curRule, cardObject);
-					consts.LOG(ruleRes + "  " + curRule.description);
+					var ruleRes = RuleApply(curRule, cardObject);
+					//consts.LOG(ruleRes + "  " + curRule.description);
+					if (ruleRes == undefined)
+						continue;
+					if (ruleRes < 0){
+						consts.LOG(cardObject._name + " is rejected by rule:");
+						consts.LOG(ruleToString(curRule));
+						return false;
+					}
+					finalScore += ruleRes;
+					if (ruleRes > 0)acceptance.push(ruleToString(curRule));
 				}
-				return true;
+				if (finalScore > 0){
+					consts.LOG(cardObject._name + " is accepted by rule(s):");
+					for (var i = 0; i < acceptance.length; ++i)
+						consts.LOG((i+1) + ". " + (acceptance[i]));
+					return true;
+				}
+				consts.LOG(cardObject._name + " card playing is not refulating by any of existed rules. So, it can not be played.");
+				return false;
 			}
 		}
 		

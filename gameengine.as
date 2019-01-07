@@ -62,11 +62,18 @@
 			newGame.getPlayer = function (PID:Number):Object{return this.players[PID];}
 			newGame.getCurrentPlayer = function ():Object{return this.getPlayer(this.currentTurnPlayerIndex);}
 			newGame.phase = main;
+			newGame.infoTextBox = _root.infotxt;
 			
 			game = newGame;	// assign a last copy
 			return game;
 		}
-		
-		static var main = 20;
-		static var secondMain = 30;
+		static var untap = 10;
+		static var unkeep = 11;
+		static var draw = 12;
+		static var main = 13;
+		static var declareattackers = 14;
+		static var declareblockers = 15;
+		static var damage = 16;
+		static var secondMain = 17;
+		static var endstep = 18;
 	}
