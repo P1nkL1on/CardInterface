@@ -122,7 +122,10 @@
 			to.text += "is a " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard) + "\n";
 			if (newCard.asCreature != null)
 				to.text += "has base stats " + newCard.asCreature.baseStats() + " (power/toughness)\n";
-			to.text += "owned by " + newCard.host._name;
+			to.text += "owned by " + newCard.host._name + "\n";
+			var costs = cost.costToStringArray(newCard.castingCost, newCard.castingFrom);
+			for (var i = 0; i < costs.length; ++i)
+				to.text += costs[i] + "\n";
 		}
 		
 		
