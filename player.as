@@ -203,7 +203,7 @@
 				if (isLandDrop)
 					moveCardTo(playerObject, cardObj, places.battlefield);
 				else{
-					moveCardTo(playerObject, cardObj, places.stack);
+					moveCardTo(playerObject, cardObj, /* places.stack */ places.battlefield);
 				}
 					
 				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);

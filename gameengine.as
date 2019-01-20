@@ -3,7 +3,7 @@
 	class gameengine {
 	
 		static function test(){
-			var map = back.create_obj(back.base_layer(), "map" );
+			
 			var g = initialiseGame(
 				new Array(
 					"Ivan", 
@@ -11,18 +11,18 @@
 				), 
 				new Array(
 					new Array(
-					7 + random(1)+10, "Basic Island",
-					7 + random(10), "Basic Plane", 
-					7 + random(10), "Basic Forest", 
-					7 + random(10), "Basic Mountain",
-					7 + random(10), "Basic Swamp",
-					4, "Test Creature",
-					4, "Test Wizard",
+					20, "Basic Plane",
+					20, "Basic Swamp",
 					4, "Test Dogo",
-					4, "Test Ogre",
 					4, "Test Artifact",
 					4, "Test Robot"), 
-					new Array(20, "Basic Forest")
+					new Array(
+					20, "Basic Forest",
+					20, "Basic Mountain",
+					4, "Test Creature",
+					4, "Test Wizard",
+					4, "Test Ogre"
+					)
 				));
 			
 			var ivan = g.getPlayer(0);
@@ -39,6 +39,18 @@
 			// player can play only 1 land dureing his turn
 			
 			game = g;
+		}
+	
+		static function createMapsForAGame(gameObject:Object):Array{
+			gameObject.gameFields = new Array();
+			for (var i = 0; i < gameObject.players.length; ++i){
+				var map = back.create_obj(back.base_layer(), "map");
+				gameObject.players[i].map = map;
+				map._x = (map._width + 20) * i;
+				map.playerID = gameObject.allPlayersIDS(i);
+				gameObject.gameFields.push(map);
+			}
+			return gameObject.gameFields;
 		}
 	
 	
@@ -64,7 +76,10 @@
 			newGame.phase = main;
 			newGame.infoTextBox = _root.infotxt;
 			
+			createMapsForAGame(newGame);
+			
 			game = newGame;	// assign a last copy
+			
 			return game;
 		}
 		static var untap = 10;

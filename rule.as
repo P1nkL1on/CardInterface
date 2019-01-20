@@ -129,7 +129,7 @@
 			
 			var heh = new Object();
 			heh._name = "Stupid author";
-			res.push(createRule(playerHost, "can not play non-land cards", playerCannotPlayNonLandCards, permanent, new Array(), heh));
+			//res.push(createRule(playerHost, "can not play non-land cards", playerCannotPlayNonLandCards, permanent, new Array(), heh));
 			return res;
 		}
 		

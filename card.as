@@ -85,7 +85,7 @@
 				}
 			
 			// CARD VISIBLE
-				newCard.update = function (){if (this.mc != undefined) drawing.traceToMovieClip(this, this.mc);}
+				newCard.update = function (){if (this.mcs != undefined) for (var i = 0; i < this.mcs.length; ++i)drawing.traceToMovieClip(this, this.mcs[i]);}
 			consts.LOG("Card added to game: " + cardNameTypeColorCostOwnerToString(newCard));
 			return newCard;
 		}

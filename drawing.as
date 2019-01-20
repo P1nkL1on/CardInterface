@@ -21,11 +21,20 @@
 		
 		// VISUAL TRACE FUNCTIONS
 		static function traceToMovieClip(cardObject:Object, mc:MovieClip):MovieClip{
-			
-			if (cardObject.isVisibleTo.length > 0){
+			var isSeenHere = false;
+			//trace( cardObject.isVisibleTo+'/'+mc.onFieldOfID)
+			for (var i = 0; i < cardObject.isVisibleTo.length; ++i)
+			if (mc.onFieldOfID == cardObject.isVisibleTo[i]){
+				isSeenHere = true; break;
+			}
+			mc.isBack = !isSeenHere;
+			if (isSeenHere){
 					var wasNot1 = mc._currentframe != 1;
 					mc.gotoAndStop(1);
-					if (wasNot1) mc.pic.gotoAndStop(makePictureForCard(cardObject));// apply color
+					if (wasNot1) {
+						mc.pic.gotoAndStop((cardObject.usedImage == undefined)? makePictureForCard(cardObject) : cardObject.usedImage);// apply color
+						cardObject.usedImage = mc.pic._currentframe;
+					}
 					
 					var clrs:Array = cardObject.cColors(); var clL = clrs.length;
 
@@ -42,11 +51,17 @@
 			return mc;
 		}
 		
-		static function traceToNewMovieClip(cardObject:Object):MovieClip{
-			var newCard = back.create_obj(back.base_layer(), "card" );	// cards are on back stage
-			newCard.orig = cardObject;				// link to a card object, that was done from
-			traceToMovieClip(cardObject, newCard);  // draw a card
-			return newCard;
+		static function traceToNewMovieClip(cardObject:Object):Array{
+			var arr = new Array();
+			var plIDS = cardObject.host.game.allPlayersIDS;
+			for (var i = 0; i < plIDS.length; ++i){
+				var newCard = back.create_obj(cardObject.host.game.players[plIDS[i]].map, "card" );	// cards are on back stage
+				newCard.orig = cardObject;				// link to a card object, that was done from
+				newCard.onFieldOfID = plIDS[i];
+				traceToMovieClip(cardObject, newCard);  // draw a card
+				arr.push(newCard);
+			}
+			return arr;
 		}
 		static var stopMoveWhen = 1;
 		static var selectedItem = -1;
@@ -56,93 +71,98 @@
 				var place = i;
 				var cardNumber = 0;
 				var cardTotal = player.cardCountIn(playerObject, place);
-				var xFrom = 50; var xTo = 550;
+				//var xFrom = 50; var xTo = 550;
 				
 				player.forEachCardIn(playerObject, place, function(ccard:Object){ 
-					var mc = traceToNewMovieClip(ccard);	
-					ccard.mc = mc;
-					mc._x = (x == undefined)? playerStartX : x; mc._y = (y == undefined)? (mc._height / 2 - 10) : y;
-					mc.xx = playerStartX; mc.yy = 0; mc.zz = 0;	// global worl coordinations
-					mc._rotation = (random(9)-4) / 3;
-					mc.cacheAsBitmap = true;	// to descrease perfomance
-					mc.timeout = -1;	// timers does not work now.
-										// -1 - do nothing
-										// > 0 - wait something
-										// == 0 working
-					// for the first time of creation we leave depthes of cards default
-					mc.movespd = 5;
-					mc._z = 0; mc._yy = 0;	// special additional coordinates to simulate height
-					mc.sp_z = 0; 			// speed in height coordinates
-					mc.nextDepth = mc.getDepth();
-					mc.choosingX = 0; mc.choosingY = 0;
-					mc.onEnterFrame = function (){
-						//trace(this.timeout)
-						if (this.timeout == -1){ 
-							// there is no card choosing in Deck!
-							if (this.indeck == true) return;
-							if (this.mouseOver) card.traceCardInfoToText(this.orig);
-							// glow border of needed color
-							this.gotoFr = 1; if (this.mouseOver) this.gotoFr = 2; if (this.selected) this.gotoFr = 3;
-							if (this.glow._currentframe != this.gotoFr) this.glow.gotoAndStop(this.gotoFr);
-							this.mouseOver = false;
-							
-							// is mouse i zone of hand, battlefield, etc
-							this._x += (this.choosingX - this._x) / 3;
-							this._y += (this.choosingY - this._y) / 8;
-							this.notInZone = (Math.abs(this.yy - _root._ymouse) > 50 || _root._xmouse <= this.xfrom - 50 || _root._xmouse >= this.xto + 50);
-							if (this.space <= 0){
-								this.mouseOver = !this.notInZone && (Math.abs(this.xx - _root._xmouse) < 48);
-								this.choosingY = this._yy - 30 * this.mouseOver;
-								return; // cards are enougth wide to be seen well
+					var mcs = traceToNewMovieClip(ccard);	
+					ccard.mcs = mcs;
+					for (var i = 0; i < mcs.length; ++i){
+						var mc = ccard.mcs[i];
+						mc._x = (x == undefined)? playerStartX : x; mc._y = (y == undefined)? (mc._height / 2 - 10) : y;
+						mc.xx = playerStartX; mc.yy = 0; mc.zz = 0;	// global word coordinations
+						mc._rotation = (random(9)-4) / 3;
+						mc.cacheAsBitmap = true;	// to descrease perfomance
+						mc.timeout = -1;	// timers does not work now.
+											// -1 - do nothing
+											// > 0 - wait something
+											// == 0 working
+						// for the first time of creation we leave depthes of cards default
+						mc.movespd = 5;
+						mc._z = 0; mc._yy = 0;	// special additional coordinates to simulate height
+						mc.sp_z = 0; 			// speed in height coordinates
+						mc.nextDepth = mc.getDepth();
+						mc.choosingX = 0; mc.choosingY = 0;
+						mc.onEnterFrame = function (){
+							//trace(this.timeout)
+							if (this.timeout == -1){ 
+								// there is no card choosing in Deck!
+								if (this.indeck == true) return;
+								if (this.mouseOver) card.traceCardInfoToText(this.orig);
+								// glow border of needed color
+								this.gotoFr = 1; if (this.canbePlayed) this.gotoFr = 4; if (this.mouseOver) this.gotoFr = 2; if (this.selected) this.gotoFr = 3;
+								if (this.glow._currentframe != this.gotoFr) this.glow.gotoAndStop(this.gotoFr);
+								this.mouseOver = false;
+								
+								// is mouse i zone of hand, battlefield, etc
+								this._x += (this.choosingX - this._x) / 3;
+								this._y += (this.choosingY - this._y) / 8;
+								this.notInZone = (Math.abs(this.yy - _root._ymouse) > 50 || _root._xmouse <= this.xfrom - 50 || _root._xmouse >= this.xto + 50);
+								if (this.space <= 0){
+									this.mouseOver = !this.notInZone && (Math.abs(this.xx - _root._xmouse) < 48);
+									this.choosingY = this._yy - 30 * this.mouseOver;
+									return; // cards are enougth wide to be seen well
+								}
+								// or else we need to move them casuse of cursors
+								//this.dy = this.yy - _root._ymouse;
+								// do not do anything, if mouse not in a place
+								if (this.notInZone)
+									{ this.choosingX = this.xx; this.choosingY = this._yy; return; }	 
+								this.mouseOver = (_root._xmouse >= this.selectX && _root._xmouse < this.selectXt);
+								if (this.isBack) return;
+								if (this.mouseOver)
+									{ this.choosingX = this.xx; this.choosingY = this._yy - 30; selectedItem = this.lastNumber; selectedItemX = this.xx - this.xfrom; return; }	
+								else
+									this.choosingY = this._yy;
+								if (_root._xmouse >= this.selectXt)
+									this.choosingX = this.xfrom + (selectedItemX - 100) / (selectedItem - 1) * (this.lastNumber);
+								if (_root._xmouse <= this.selectX)
+									this.choosingX = this.xfrom + selectedItemX + 100 + (this.xto - (selectedItemX + 100 + this.xfrom)) / (this.lastTotal - selectedItem) * (this.lastNumber - selectedItem - 1);
+								if (Math.abs(this.choosingX - this.xx) > 100) this.choosingX = this.xx;
+								return;
 							}
-							// or else we need to move them casuse of cursors
-							//this.dy = this.yy - _root._ymouse;
-							// do not do anything, if mouse not in a place
-							if (this.notInZone)
-								{ this.choosingX = this.xx; this.choosingY = this._yy; return; }	 
-							this.mouseOver = (_root._xmouse >= this.selectX && _root._xmouse < this.selectXt);
-							if (this.mouseOver)
-								{ this.choosingX = this.xx; this.choosingY = this._yy - 30; selectedItem = this.lastNumber; selectedItemX = this.xx - this.xfrom; return; }	
-							else
-								this.choosingY = this._yy;
-							if (_root._xmouse >= this.selectXt)
-								this.choosingX = this.xfrom + (selectedItemX - 100) / (selectedItem - 1) * (this.lastNumber);
-							if (_root._xmouse <= this.selectX)
-								this.choosingX = this.xfrom + selectedItemX + 100 + (this.xto - (selectedItemX + 100 + this.xfrom)) / (this.lastTotal - selectedItem) * (this.lastNumber - selectedItem - 1);
-							if (Math.abs(this.choosingX - this.xx) > 100) this.choosingX = this.xx;
-							return;
+							if (this.timeout <= 1 && this.timeout >= 0 && this.sp_z <= .1) this.swapDepths(this.nextDepth);
+							if (this.timeout > 0) {this.timeout--; return;}
+							
+							this.dx = (this.xx - this._x);
+							this.dy = (this.yy - this._yy);
+							this.dz = (this.zz - this._z);
+							this._x += this.dx / (this.movespd * 2);
+							this._yy += this.dy / (this.movespd * 2);
+							this._z += this.dz / (this.movespd * 3);
+							this._z += this.sp_z; if (this.sp_z > .2) this.sp_z /= 1.03; else this.sp_z = 0; 
+							
+							if (-this.dz / this.movespd / 3 > this.sp_z && this.nextDepth != null)
+							{this.swapDepths(this.nextDepth); this.nextDepth = null;}
+							
+							this._y = this._yy - this._z;
+							if (Math.abs(this.dx) < stopMoveWhen && Math.abs(this.dy) < stopMoveWhen && Math.abs(this.dz) < stopMoveWhen * .2)
+								this.timeout = -1;
+							
 						}
-						if (this.timeout <= 1 && this.timeout >= 0 && this.sp_z <= .1) this.swapDepths(this.nextDepth);
-						if (this.timeout > 0) {this.timeout--; return;}
-						
-						this.dx = (this.xx - this._x);
-						this.dy = (this.yy - this._yy);
-						this.dz = (this.zz - this._z);
-						this._x += this.dx / (this.movespd * 2);
-						this._yy += this.dy / (this.movespd * 2);
-						this._z += this.dz / (this.movespd * 3);
-						this._z += this.sp_z; if (this.sp_z > .2) this.sp_z /= 1.03; else this.sp_z = 0; 
-						
-						if (-this.dz / this.movespd / 3 > this.sp_z && this.nextDepth != null)
-						{this.swapDepths(this.nextDepth); this.nextDepth = null;}
-						
-						this._y = this._yy - this._z;
-						if (Math.abs(this.dx) < stopMoveWhen && Math.abs(this.dy) < stopMoveWhen && Math.abs(this.dz) < stopMoveWhen * .2)
-							this.timeout = -1;
-						
 					}
 				});
 			}
 		}
-		static function moveCard(cardObj:Object, XX, YY, ZZ, wait){
-			if (cardObj.mc == undefined)
+		static function moveCardMc(mc:MovieClip, XX, YY, ZZ, wait){
+			if (mc == undefined)
 				return;
-			cardObj = cardObj.mc;
-			cardObj.xx = XX; cardObj.yy = YY; cardObj.zz = ZZ;
-			cardObj.choosingX = XX; cardObj.choosingY = YY;
-			cardObj.nextDepth = Math.round(cardObj.xx + cardObj.yy * 15 + cardObj.zz * 100)
-			//cardObj.swapDepths();
-			cardObj.timeout = wait;
+			
+				mc.xx = XX; mc.yy = YY; mc.zz = ZZ;
+				mc.choosingX = XX; mc.choosingY = YY;
+				mc.nextDepth = Math.round(mc.xx + mc.yy * 15 + mc.zz * 100)
+				//mc.swapDepths();
+				mc.timeout = wait;
+			
 			//trace(XX+'/'+YY+'/'+ZZ+'/'+wait+"   " + cardObj._name);
 		}
 		static var playerStartX = 80;
@@ -158,25 +178,28 @@
 				var startX = playerStartX + 130 * i;
 				player.forEachCardIn(playerObject, place, function(card:Object){
 					++cardNumber;
-					var moveToX = startX + randomOffset() * 2;
-					var moveToY = playerStartY + randomOffset();
-					// if it is deck it is backwards, cause you are drawing from the top!
-					var moveToZ = (place == 0)? ( cardTotal - cardNumber) : cardNumber;
-					// this IF prevent from moving giant count of cards, when ther place do not moves
-					// there was an error, when standing stil lcards makes a giant timer
-					if (Math.abs(card.xx -moveToX ) + Math.abs(card.yy - moveToY) + Math.abs(card.zz - moveToZ) < 20)
-						return;
-					var timer = 0;
-					if (Math.abs(startX - card.mc.xx) < 5) 
-						timer = 0.1; 		// this case prevent a 250 card deck to sloowly goon in match start
-					else {
-						++movenCardNumber;
-						timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
-						moveCardNumber += Math.max( 2, 30 - movenCardNumber * .3);		// time delay between card mvoements
-						card.mc.sp_z = 25;			// speed of upping when card mvoes
+					card.mc = card.mcs[0];
+					for (var i = 0; i < card.mcs.length; card.mc = card.mcs[++i]){
+						var moveToX = startX + randomOffset() * 2;
+						var moveToY = playerStartY + randomOffset();
+						// if it is deck it is backwards, cause you are drawing from the top!
+						var moveToZ = (place == 0)? ( cardTotal - cardNumber) : cardNumber;
+						// this IF prevent from moving giant count of cards, when ther place do not moves
+						// there was an error, when standing stil lcards makes a giant timer
+						if (Math.abs(card.xx -moveToX ) + Math.abs(card.yy - moveToY) + Math.abs(card.zz - moveToZ) < 20)
+							return;
+						var timer = 0;
+						if (Math.abs(startX - card.mc.xx) < 5) 
+							timer = 0.1; 		// this case prevent a 250 card deck to sloowly goon in match start
+						else {
+							++movenCardNumber;
+							timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
+							moveCardNumber += Math.max( 2, 30 - movenCardNumber * .3);		// time delay between card mvoements
+							card.mc.sp_z = 25;			// speed of upping when card mvoes
+						}
+						card.mc.indeck = true;
+						moveCardMc(card.mc, moveToX, moveToY, moveToZ,  timer / card.host.game.playerCount);
 					}
-					card.mc.indeck = true;
-					moveCard(card, moveToX, moveToY, moveToZ,  timer);
 				});
 			}
 		}
@@ -199,24 +222,33 @@
 				var moveToX = 0; var moveToY = 0; var moveToZ = 0;
 				var isLand = card.isType(ccard, typ.Land);
 				
+				
 				if (isCreature){
-					//++crC;
-					moveToX = calculateXCoord(xFrom, xTo, creatureTotal-1, crC++);
-					moveToY = yLine1;
-					spaceMc(ccard.mc, xFrom, xTo, creatureTotal, crC - 1, moveToX)
+					++crC
+					for (var i = 0; i < ccard.mcs.length; ++i){
+						moveToX = calculateXCoord(xFrom, xTo, creatureTotal-1, crC - 1);
+						moveToY = yLine1;
+						spaceMc(ccard.mcs[i], xFrom, xTo, creatureTotal, crC - 1, moveToX)
+						moveCardMc(ccard.mcs[i], moveToX, moveToY, moveToZ,  0);
+					}
 				}else{
 					moveToY = yLine2;
 					if (isLand){
-						//++lC;
-						moveToX = calculateXCoord(xFrom, xTo1, landTotal-1, lC++);
-						spaceMc(ccard.mc, xFrom, xTo1, landTotal, lC - 1, moveToX)
+						++lC;
+						for (var i = 0; i < ccard.mcs.length; ++i){
+							moveToX = calculateXCoord(xFrom, xTo1, landTotal-1, lC- 1);
+							spaceMc(ccard.mcs[i], xFrom, xTo1, landTotal, lC - 1, moveToX)
+							moveCardMc(ccard.mcs[i], moveToX, moveToY, moveToZ,  0);
+						}
 					}else{
-						//++oC;
-						moveToX = calculateXCoord(xFrom1, xTo, otherTotal-1, oC++);
-						spaceMc(ccard.mc, xFrom1, xTo, otherTotal, oC - 1, moveToX)
+						++oC;
+						for (var i = 0; i < ccard.mcs.length; ++i){
+							moveToX = calculateXCoord(xFrom1, xTo, otherTotal-1, oC- 1);
+							spaceMc(ccard.mcs[i], xFrom1, xTo, otherTotal, oC - 1, moveToX)
+							moveCardMc(ccard.mcs[i], moveToX, moveToY, moveToZ,  0);
+						}
 					}
 				}
-				moveCard(ccard, moveToX, moveToY, moveToZ,  0);
 			});
 		}
 		
@@ -227,25 +259,23 @@
 			var xTo = 880;
 			var moveCardNumber = 30;
 			player.forEachCardIn(playerObject, places.hand, function(card:Object){
-				;
-				var moveToX = calculateXCoord(xFrom, xTo, cardTotal - 1, cardNumber);
-				var moveToY = playerStartY;
-				var moveToZ = 0;
-				var timer = 0;
-				if (Math.abs(moveToX - card.mc.xx) < 200) 
-					timer = 0.2; 		// this case prevent a 250 card deck to sloowly goon in match start
-				else {
-					timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
-					moveCardNumber += 30;		// time delay between card mvoements
-					card.mc.sp_z = 15;			// speed of upping when card mvoes
-					card.mc._rotation = 0;
+				card.mc = card.mcs[0];
+				for (var i = 0; i < card.mcs.length; card.mc = card.mcs[++i]){
+					var moveToX = calculateXCoord(xFrom, xTo, cardTotal - 1, cardNumber);
+					var moveToY = playerStartY;
+					var moveToZ = 0;
+					var timer = 0;
+					if (Math.abs(moveToX - card.mc.xx) < 200) 
+						timer = 0.2; 		// this case prevent a 250 card deck to sloowly goon in match start
+					else {
+						timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
+						moveCardNumber += 30;		// time delay between card mvoements
+						card.mc.sp_z = 15;			// speed of upping when card mvoes
+						card.mc._rotation = 0;
+					}
+					spaceMc(card.mc, xFrom, xTo, cardTotal, cardNumber, moveToX)
+					moveCardMc(card.mc, moveToX, moveToY, moveToZ,  timer / card.host.game.playerCount);
 				}
-				// card.mc.lastTotal = cardTotal - 1;
-				// card.mc.lastNumber = cardNumber;
-				// card.mc.xfrom = xFrom; card.mc.xto = xTo;
-				// card.mc.space = spaceDiff(xFrom, xTo, card.mc.lastTotal);
-				spaceMc(card.mc, xFrom, xTo, cardTotal, cardNumber, moveToX)
-				moveCard(card, moveToX, moveToY, moveToZ,  timer);
 				cardNumber ++;
 			});
 		}
