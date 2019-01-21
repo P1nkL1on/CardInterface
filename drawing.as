@@ -227,11 +227,15 @@
 					placesOfDecksOnField[placeIndex * 2 + 1],
 					placeIndex == places.deck);
 			// case for hand, battlefield, stack
-			// no realisation til now
 			if (placeIndex == places.hand)
 				placeCardsAsLine(
 					makeArrayFromPlayerPlace(playerObject, placeIndex),
 					handCoords[0], handCoords[1], handCoords[2] - handCoords[0]);
+			if (placeIndex == places.battlefield){
+				var creaturePermanents = player.eachCardInFilter(playerObject, places.battlefield, player.filterCreatures);
+				var landPermanents = player.eachCardInFilter(playerObject, places.battlefield, player.filterLand);
+				var otherPermanents = player.eachCardInFilter(playerObject, places.battlefield, player.filterCreatures);
+			}
 			return;
 		}
 		// update exactly or all (place == undefined) cards of player

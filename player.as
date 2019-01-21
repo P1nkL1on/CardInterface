@@ -64,9 +64,11 @@
 				for (var i = 0; i < playerObject.cards.length; ++i)
 					if (playerObject.cards[i].isin == place && filter(playerObject.cards[i]) == true)
 							res.push(playerObject.cards[i]);
-				/* for (var i = 0; i < res.length; ++i)
-					trace(res[i]._name + ":" + card.cardPID(res[i])); */
 				return res;
+			}
+			// filter given array to new array with only filter accepted cards
+			static function filterCards(cards:Array, filter):Array{
+				
 			}
 			// return count of cards of a player in hand/graveyard/deck/etc, that allowed by specified filter
 			static function cardCountInFilter(playerObject:Object, place:Number, filter):Number{
@@ -216,7 +218,7 @@
 				
 			}
 			// spell casting
-			static function playerWantCastASpell(playerObject:Object, permanent:Object):Boolean{
+			static function playerWantCastASpell(playerObject:Object, cardObj:Object):Boolean{
 				// pay the cost
 				
 				// if cant return false

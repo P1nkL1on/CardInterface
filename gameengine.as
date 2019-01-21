@@ -41,16 +41,21 @@
 			game = g;
 		}
 	
-		static function createMapsForAGame(gameObject:Object):Array{
+		static function createMapsForAGame(gameObject:Object, scale:Number):Array{
 			gameObject.gameFields = new Array();
+			if (scale == undefined) scale = 1;
 			for (var i = 0; i < gameObject.players.length; ++i){
 				var map = back.create_obj(back.base_layer(), "map");
 				gameObject.players[i].map = map;
-				map._x = (map._width + 20) * i;
+				map._x = (map._width + 20) * (i % 2) * scale;
+				map._y = (map._height + 20) * (i - i %2) / 2 * scale + 100;
+				map._xscale = map._yscale = 100 * scale;
+				map.scale = scale;
+				
 				map.playerID = gameObject.allPlayersIDS[i];
 				gameObject.gameFields.push(map);
-				map.xmouse = function (){ return _root._xmouse - this._x; }
-				map.ymouse = function (){ return _root._ymouse - this._y; }
+				map.xmouse = function (){ return (_root._xmouse - this._x) / this.scale; }
+				map.ymouse = function (){ return (_root._ymouse - this._y) / this.scale; }
 			}
 			return gameObject.gameFields;
 		}
@@ -78,7 +83,7 @@
 			newGame.phase = main;
 			newGame.infoTextBox = _root.infotxt;
 			
-			createMapsForAGame(newGame);
+			createMapsForAGame(newGame, .72);
 			
 			game = newGame;	// assign a last copy
 			
