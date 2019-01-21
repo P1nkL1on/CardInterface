@@ -157,6 +157,14 @@
 				res += formatA2(i, l1, stps.length - 1, typ.subTypToString(stps[i]));
 			return res;
 		}
+		static function cardSubTypeFormat(cardObject:Object):String{
+			var res = "";
+			var l1 = cardObject.cardSubType.length;
+			var stps = cardObject.cSubTypes();
+			for (var i = 0; i < stps.length; ++i)
+				res += formatA2(i, l1, stps.length - 1, typ.subTypToString(stps[i]));
+			return res;
+		}
 		static function cardColorFormat(cardObject:Object):String{
 			var res = "";
 			var l1 = cardObject.cardColor.length;

@@ -11,8 +11,11 @@
 				), 
 				new Array(
 					new Array(
-					20, "Basic Plane",
-					2, "Basic Swamp",
+					10, "Basic Plane",
+					10, "Basic Swamp",
+					10, "Basic Forest",
+					10, "Basic Mountain",
+					10, "Basic Island",
 					14, "Test Dogo",
 					14, "Test Artifact",
 					14, "Test Robot"), 
@@ -30,6 +33,7 @@
 			player.playerShuflesDeck(ivan);
 			drawing.createMcForEveryPlayerCard(ivan);
 			drawing.updateCardsOfPlayer(ivan);
+			drawing.updateCoutners();
 			//player.playerDrawsCards(ivan, 7);
 			
 			// emblem! 
@@ -58,6 +62,18 @@
 				gameObject.gameFields.push(map);
 				map.xmouse = function (){ return (_root._xmouse - this._x) / this.scale; }
 				map.ymouse = function (){ return (_root._ymouse - this._y) / this.scale; }
+				
+				for (var dc = 0, plc = 0; dc < 3; ++dc, plc = (new Array(0, 3, 4))[dc]){
+					var deckCounter = back.create_obj(back.effect_layer(), "flying_number" );
+					deckCounter.num.text = "";
+					deckCounter.pl = gameObject.players[i];
+					deckCounter.place = plc; deckCounter._x = map._x + (110 + 120 * dc + 10 * (dc ==2)) * scale; deckCounter.yy = 560; deckCounter._y = deckCounter.yy;
+					drawing.deckCoutners.push(deckCounter);
+					deckCounter.onMouseMove = function (){
+						if (this.num.text == "0"){this._visible = false; return;}
+						this._visible = (Math.abs(this._x - _root._xmouse) < 50 && Math.abs(this._y - _root._ymouse) < 50);
+					}
+				}
 			}
 			return gameObject.gameFields;
 		}

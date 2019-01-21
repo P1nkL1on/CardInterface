@@ -109,7 +109,6 @@
 					
 				consts.LOG(playerObject._name + " shuffled their " + places.placeToString(where));
 				drawing.updateCardsOfPlayer(playerObject, where);
-			
 			}
 			// sort action for playerDoWithCads
 			static function randomlyShuffleArray(cardsFromDeck:Array):Array{
@@ -123,6 +122,20 @@
 				}	
 				return cardsShuffled;
 			}
+			// sort action for playerDoWithCads
+			static function sortByCardProperty(func){
+				return function (cardsFromDeck:Array):Array{
+					var cardsSorted = new Array();
+					var cardTypes = new Array();
+					for (var i = 0; i < cardsFromDeck.length; ++i)
+						cardTypes.push(func(cardsFromDeck[i]));
+					var inds = cardTypes.sort(Array.RETURNINDEXEDARRAY);
+					for (var i = 0; i < inds.length; ++i)
+						cardsSorted.push(cardsFromDeck[inds[i]]);
+					return cardsSorted;
+				}
+			}
+			
 			// force a target player to shuffle his deck
 			static function playerShuflesDeck (playerObject:Object):Void{
 				playerDoWithCads(playerObject, places.deck, randomlyShuffleArray);
@@ -195,6 +208,7 @@
 				trace("Required update for " + places.placeToString(from) + " & " + places.placeToString(to));
 				drawing.updateCardsOfPlayer(playerObject, to);
 				if (from != places.deck) drawing.updateCardsOfPlayer(playerObject, from);
+				drawing.updateCoutners(playerObject);
 			}
 			
 			
@@ -216,13 +230,16 @@
 	
 				// do not place into stack, so just put a land to the battlefield
 				var isLandDrop = (card.isType(cardObj, typ.Land));
+				var succ = true;
 				if (isLandDrop){
 					moveCardTo(playerObject, cardObj, places.battlefield);
-					updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
-					return true;
+				}else{
+					succ = playerWantCastASpell(playerObject, cardObj);
 				}
 					
-				return playerWantCastASpell(playerObject, cardObj);
+				//playerDoWithCads(playerObject, places.battlefield, sortByCardProperty(card.cardColorFormat));
+				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
+				return succ;
 				
 			}
 			// spell casting
@@ -235,8 +252,7 @@
 				// move to stack
 				
 				// if all approves
-				moveCardTo(playerObject, cardObj, /* places.stack */ places.battlefield);
-				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
+				moveCardTo(playerObject, cardObj, places.battlefield);
 				return true;
 			}
 		// TRACE FUNCTIONS

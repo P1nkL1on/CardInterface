@@ -215,7 +215,8 @@
 		} */
 		
 		// place all visible card from some of choosen player's place to their places
-		static var placesOfDecksOnField = new Array(80, 620, -1, -1, -1, -1, 210, 620, 340, 620, -1, -1); 
+		
+		static var placesOfDecksOnField = new Array(110, 620, -1, -1, -1, -1, 230, 620, 355, 620, -1, -1); 
 		static var handCoords = new Array(480, 620, 880);
 		//var xFrom = 100; var xTo = 860; var yLine1 = 350; var yLine2 = 470;
 		//var xTo1 = 340; var xFrom1 = 620;
@@ -412,7 +413,15 @@
 			mc.space = spaceDiff(xFrom, xTo, mc.lastTotal);		// a palce between cards, which are common
 		}
 		
-		
+		static var deckCoutners = new Array();
+		static function updateCoutners():Void{
+			for (var i = 0; i < deckCoutners.length; ++i){
+				var dc = deckCoutners[i];
+				var cc = player.cardCountIn(dc.pl, dc.place)
+				dc.num.text = cc;
+				dc._y = dc.yy - cc * .75;
+			}
+		}
 		
 		
 		// mana problems
