@@ -3,7 +3,7 @@
 	class player {
 	
 		
-	
+		// create an instance of player in game via name, cards, ID
 		static function createPlayer(
 			gameInstance:Object, // connection to a game, player is playing
 			playerIndex:Number, // is player index in gameEngine.as machine
@@ -43,19 +43,18 @@
 						action(playerObject.cards[i]);
 						
 			}
-			// count of cards in player's something
+			// count of cards in player's somewhere
 			static function cardCountIn(playerObject:Object, place:Number):Number{
 				var res = 0;
 				for (var i = 0; i < playerObject.cards.length; ++i)
 					res += 1 * (playerObject.cards[i].isin == place);
 				return res;
 			}
-			// count of cards in player's something
+			// default filters for function eachCardInFilter
 			static function defaultFilter (ccard:Object):Boolean { return true; }
 			static function filterCreatures (ccard:Object):Boolean { return card.isType(ccard, typ.Creature); }
 			static function filterLand (ccard:Object):Boolean { return card.isType(ccard, typ.Land);}
-			
-			// return array of something with paramaters
+			// return array of cards of a player in hand/graveyard/deck/etc, that allowed by specified filter
 			static function eachCardInFilter(playerObject:Object, place:Number, filter):Array{
 				//trace('Find all in '+place);
 				var res = new Array();
@@ -69,7 +68,7 @@
 					trace(res[i]._name + ":" + card.cardPID(res[i])); */
 				return res;
 			}
-			// count of cards in player's something whith parameters
+			// return count of cards of a player in hand/graveyard/deck/etc, that allowed by specified filter
 			static function cardCountInFilter(playerObject:Object, place:Number, filter):Number{
 				var res = 0;
 				if (filter == undefined)
@@ -79,15 +78,10 @@
 				return res;
 			}
 			
-			// force a target player to shuffle his deck
 			
-			static function playerShuflesDeck (playerObject:Object):Void{
-				playerDoWithCads(playerObject, places.deck, randomlyShuffleArray);
-			}
-			static function playerShuflesHand (playerObject:Object):Void{
-				playerDoWithCads(playerObject, places.hand, randomlyShuffleArray);
-			}
 			
+			// force a player to do something with his cards in hand/graveyard/deck/etc and do something with their order
+			// like shuffle or sort
 			static function playerDoWithCads (playerObject:Object, where:Number, action):Void{
 				var cardsFromDeckIndexes = new Array();
 				var cardsFromDeck = new Array();
@@ -104,10 +98,10 @@
 					playerObject.cards[cardsFromDeckIndexes[i]] = cardsShuffled[i];
 					
 				consts.LOG(playerObject._name + " shuffled their " + places.placeToString(where));
-				drawing.updatePlayerCardHolders(playerObject, where);
+				drawing.updateCardsOfPlayer(playerObject, where);
 			
 			}
-			
+			// sort action for playerDoWithCads
 			static function randomlyShuffleArray(cardsFromDeck:Array):Array{
 				var needLength = cardsFromDeck.length;
 				var cardsShuffled = new Array();
@@ -119,22 +113,50 @@
 				}	
 				return cardsShuffled;
 			}
-		
+			// force a target player to shuffle his deck
+			static function playerShuflesDeck (playerObject:Object):Void{
+				playerDoWithCads(playerObject, places.deck, randomlyShuffleArray);
+			}
+			// force a player to draw 'cardCount' cards
 			static function playerDrawsCards(playerObject:Object, cardCount:Number):Void{
 				var deckEmpty = playerMoveCards(playerObject, cardCount, places.deck, places.hand);
 				if (!deckEmpty);
 					// LOST THE GAME!
 			}
+			// put 'cardCount' from the top of players deck into thrie graveyard
 			static function playerPutTopCardsToGraveyard(playerObject:Object, cardCount:Number):Void{
 				playerMoveCards(playerObject, cardCount, places.deck, places.graveyard);
 			}
-			
-			static function updateViewAfterCardMove(playerObject:Object, from:Number, to:Number):Void{
-				trace("Required update for " + places.placeToString(from) + " & " + places.placeToString(to));
-				drawing.updatePlayerCardHolders(playerObject, to);
-				if (from != places.deck) drawing.updatePlayerCardHolders(playerObject, from);
+			// force a player to discard his hand
+			static function playerDiscardHand(playerObject:Object):Void{
+				playerMoveCards(playerObject, player.cardCountIn(playerObject, places.hand), places.hand, places.graveyard);
 			}
 			
+			// elemental operation of moving card without any view updates
+			static function moveCardTo(playerOb:Object, curCard:Object, to:Number):Void{
+				var wasIn = curCard.isin;
+				curCard.isin = to;
+				if (to == places.hand) curCard.isVisibleTo.push(curCard.host.PID);
+				if (to >= 2) curCard.isVisibleTo = playerOb.game.allPlayersIDS;
+				curCard.update();
+				consts.LOG(curCard.host._name + " move " + card.cardNamePIDVisible(curCard) + "  " + places.placeToString(wasIn) +" -> "+ places.placeToString(to));
+			}
+			// move EXACT cards from 'from' to 'to'. then, 'updateViewAfterCardMove'
+			static function playerMoveExactCards(playerObject:Object, cards:Array, to:Number):Void{
+				var cardsWereIn = new Array();
+				for (var i = 0; i < cards.length; ++i){
+					var addPlace = cards[i].isin; var needAdd = true;	// check all places where from was cards moved to update them later
+					for (var j = 0; j < cardsWereIn.length; ++j)
+						if (cardsWereIn[j] == addPlace)
+							needAdd = false;
+					if (needAdd) cardsWereIn.push(addPlace);
+					
+					moveCardTo(playerObject, cards[i], to);
+				}
+				for (var i = 0; i < cardsWereIn.length; ++i)
+					updateViewAfterCardMove(playerObject, cardsWereIn[i], to);
+			}
+			// move FIRST 'cardCount' cards from 'from' to 'to'. then, 'updateViewAfterCardMove'
 			static function playerMoveCards(playerObject:Object, cardCount:Number, from:Number, to:Number):Boolean{
 				if (cardCount == undefined) cardCount = 1;
 				var nowCardInd = -1;
@@ -158,40 +180,24 @@
 				updateViewAfterCardMove(playerObject, from, to);
 				return false;
 			}
-			
-			// move a card of player from somewhere to somewhere
-			static function moveCardTo(playerOb:Object, curCard:Object, to:Number):Void{
-				var wasIn = curCard.isin;
-				curCard.isin = to;
-				if (to == places.hand) curCard.isVisibleTo.push(curCard.host.PID);
-				if (to >= 2) curCard.isVisibleTo = playerOb.game.allPlayersIDS;
-				curCard.update();
-				consts.LOG(curCard.host._name + " move " + card.cardNamePIDVisible(curCard) + "  " + places.placeToString(wasIn) +" -> "+ places.placeToString(to));
+			// update view of places between which card was moved. 
+			static function updateViewAfterCardMove(playerObject:Object, from:Number, to:Number):Void{
+				trace("Required update for " + places.placeToString(from) + " & " + places.placeToString(to));
+				drawing.updateCardsOfPlayer(playerObject, to);
+				if (from != places.deck) drawing.updateCardsOfPlayer(playerObject, from);
 			}
 			
-			static function playerMoveExactCards(playerObject:Object, cards:Array, to:Number):Void{
-				var cardsWereIn = new Array();
-				for (var i = 0; i < cards.length; ++i){
-					var addPlace = cards[i].isin; var needAdd = true;	// check all places where from was cards moved to update them later
-					for (var j = 0; j < cardsWereIn.length; ++j)
-						if (cardsWereIn[j] == addPlace)
-							needAdd = false;
-					if (needAdd) cardsWereIn.push(addPlace);
-					
-					moveCardTo(playerObject, cards[i], to);
-				}
-				for (var i = 0; i < cardsWereIn.length; ++i)
-					updateViewAfterCardMove(playerObject, cardsWereIn[i], to);
-			}
 			
+			// force choosen player to tap his permanent. using for tapping? 
+			// well, not using now
 			static function playerTapsPermanent(playerObject:Object, permanent:Object):Boolean{
 				if (permanent.isin != places.battlefield || permanent.tapped == true)
 					return false; // cannot tap an permanent
 				permanent.tapped = true;
 				return true;
 			}
-			
-			static function playerCastASpell(playerObject:Object, cardObj:Object):Boolean{
+			// function to hold a player play card process
+			static function playerPlayACard(playerObject:Object, cardObj:Object):Boolean{
 				var cardwasin = cardObj.isin;
 				consts.LOG(playerObject._name + " select " + cardObj._name + " to cast");
 				
@@ -200,16 +206,27 @@
 	
 				// do not place into stack, so just put a land to the battlefield
 				var isLandDrop = (card.isType(cardObj, typ.Land));
-				if (isLandDrop)
+				if (isLandDrop){
 					moveCardTo(playerObject, cardObj, places.battlefield);
-				else{
-					moveCardTo(playerObject, cardObj, /* places.stack */ places.battlefield);
+					updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
+					return true;
 				}
 					
-				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
-				return true;//?
+				return playerWantCastASpell(playerObject, cardObj);
+				
 			}
-			
+			// spell casting
+			static function playerWantCastASpell(playerObject:Object, permanent:Object):Boolean{
+				// pay the cost
+				
+				// if cant return false
+				
+				// move to stack
+				
+				// if all approves
+				moveCardTo(playerObject, cardObj, /* places.stack */ places.battlefield);
+				return true;
+			}
 		// TRACE FUNCTIONS
 			
 			// type to console all players cards, separated by their position in game

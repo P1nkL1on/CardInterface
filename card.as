@@ -67,6 +67,7 @@
 				newCard.isin = places.deck;			// current place of card
 				newCard.isVisibleTo = new Array();	// is visible for players with PIDS, {2,3,4} - visible to third, 4d, 5th players, where 3rd is owner, for example
 													// default it is none, cause card is invisible in deck.
+				newCard.isVisibleBy = function (whoID:Number):Boolean{ for (var i = 0; i < this.isVisibleTo.length; ++i) if (this.isVisibleTo[i] == whoID) return true; return false; }
 			// CARD COST
 				newCard.castingCost = new Array();
 				newCard.castingCost.push((cardCastCost != undefined)? cardCastCost : cost.noCost());
@@ -115,19 +116,21 @@
 			return ("'"+newCard._name+"' is  " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard)+", owned by " + newCard.host._name+", " 
 					+  cost.costToString(newCard.castingCost, newCard.castingFrom));
 		}
-		static function traceCardInfoToText(newCard):Void{
-			var to = newCard.host.game.infoTextBox;
+		static function traceCardInfoToText(newCard, to):Void{
+			//var to = newCard.onField().infoTextBox;
 			to.text = "";
 			to.text += "'" + newCard._name +"'  " + cardPID(newCard) + "\n";
 			to.text += "is a " + cardColorFormat(newCard) + " "+cardTypeFormat(newCard) + "\n";
 			if (newCard.asCreature != null)
-				to.text += "has base stats " + newCard.asCreature.baseStats() + " (power/toughness)\n";
+				to.text += "has " + newCard.asCreature.baseStats() + " (power/toughness)\n";
 			to.text += "owned by " + newCard.host._name + "\n";
 			var costs = cost.costToStringArray(newCard.castingCost, newCard.castingFrom);
 			for (var i = 0; i < costs.length; ++i)
 				to.text += costs[i] + "\n";
 		}
-		
+		static function traceCardNoInfoToText(newCard, to):Void{
+			to.text = "Unknown card in " + places.placeToString(newCard.isin);
+		}
 		
 		
 		// TRACE FUNCTIONS

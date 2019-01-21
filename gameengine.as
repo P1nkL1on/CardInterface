@@ -6,8 +6,8 @@
 			
 			var g = initialiseGame(
 				new Array(
-					"Ivan", 
-					"Bobby"
+					"John", 
+					"Paul"
 				), 
 				new Array(
 					new Array(
@@ -28,7 +28,7 @@
 			var ivan = g.getPlayer(0);
 			player.playerShuflesDeck(ivan);
 			drawing.createMcForEveryPlayerCard(ivan);
-			drawing.placeDecksForPlayer(ivan);
+			drawing.updateCardsOfPlayer(ivan);
 			//player.playerDrawsCards(ivan, 7);
 			
 			// emblem! 
@@ -47,8 +47,10 @@
 				var map = back.create_obj(back.base_layer(), "map");
 				gameObject.players[i].map = map;
 				map._x = (map._width + 20) * i;
-				map.playerID = gameObject.allPlayersIDS(i);
+				map.playerID = gameObject.allPlayersIDS[i];
 				gameObject.gameFields.push(map);
+				map.xmouse = function (){ return _root._xmouse - this._x; }
+				map.ymouse = function (){ return _root._ymouse - this._y; }
 			}
 			return gameObject.gameFields;
 		}

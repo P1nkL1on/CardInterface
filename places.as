@@ -9,6 +9,10 @@
 		static var exile = 4;
 		static var stack = 5;
 		
+		
+		static var totalPlaceCount = 6;
+		
+		
 		static function placeToString(c):String{
 			switch (c){
 				case deck: return "deck";
@@ -21,4 +25,5 @@
 			}
 			return "????";
 		}
+		
 	}
