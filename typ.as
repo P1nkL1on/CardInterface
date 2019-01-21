@@ -32,6 +32,7 @@
 		static var Ogr = subtypeF(Creature, 6);
 		static var Wizard = subtypeF(Creature, 7);
 	
+		static var permantntTypes = new Array(Land, Creature, Enchantment, Artifact, Planewalker);
 		
 		static function typToString(t):String{
 			switch (t){

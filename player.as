@@ -52,8 +52,10 @@
 			}
 			// default filters for function eachCardInFilter
 			static function defaultFilter (ccard:Object):Boolean { return true; }
+			static function filterPermanent (ccard:Object):Boolean { for (var i = 0; i < typ.permantntTypes.length; ++i) if (card.isType(ccard, typ.permantntTypes[i])) return true; return false;}
 			static function filterCreatures (ccard:Object):Boolean { return card.isType(ccard, typ.Creature); }
 			static function filterLand (ccard:Object):Boolean { return card.isType(ccard, typ.Land);}
+			static function filterNon(filter){ return function (ccard:Object):Boolean{ return !filter(ccard); } }
 			// return array of cards of a player in hand/graveyard/deck/etc, that allowed by specified filter
 			static function eachCardInFilter(playerObject:Object, place:Number, filter):Array{
 				//trace('Find all in '+place);
@@ -68,7 +70,13 @@
 			}
 			// filter given array to new array with only filter accepted cards
 			static function filterCards(cards:Array, filter):Array{
-				
+				var res = new Array();
+				if (filter == undefined)
+					filter = defaultFilter; 
+				for (var i = 0; i < cards.length; ++i)
+					if (filter(cards[i]) == true)
+							res.push(cards[i]);
+				return res;
 			}
 			// return count of cards of a player in hand/graveyard/deck/etc, that allowed by specified filter
 			static function cardCountInFilter(playerObject:Object, place:Number, filter):Number{
@@ -219,6 +227,7 @@
 			}
 			// spell casting
 			static function playerWantCastASpell(playerObject:Object, cardObj:Object):Boolean{
+				var cardwasin = cardObj.isin;
 				// pay the cost
 				
 				// if cant return false
@@ -227,6 +236,7 @@
 				
 				// if all approves
 				moveCardTo(playerObject, cardObj, /* places.stack */ places.battlefield);
+				updateViewAfterCardMove(playerObject, cardwasin, cardObj.isin);
 				return true;
 			}
 		// TRACE FUNCTIONS

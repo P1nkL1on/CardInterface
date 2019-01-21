@@ -12,16 +12,17 @@
 				new Array(
 					new Array(
 					20, "Basic Plane",
-					20, "Basic Swamp",
-					4, "Test Dogo",
-					4, "Test Artifact",
-					4, "Test Robot"), 
+					2, "Basic Swamp",
+					14, "Test Dogo",
+					14, "Test Artifact",
+					14, "Test Robot"), 
 					new Array(
-					20, "Basic Forest",
+					2, "Basic Forest",
 					20, "Basic Mountain",
 					4, "Test Creature",
-					4, "Test Wizard",
-					4, "Test Ogre"
+					7, "Test Wizard",
+					14, "Test Ogre",
+					7, "Test Artifact"
 					)
 				));
 			
@@ -51,7 +52,8 @@
 				map._y = (map._height + 20) * (i - i %2) / 2 * scale + 100;
 				map._xscale = map._yscale = 100 * scale;
 				map.scale = scale;
-				
+				map.playertxt.text = gameObject.players[i]._name+"'s perspective";
+				map.gametxt.text = gameObject.getCurrentTurnString();
 				map.playerID = gameObject.allPlayersIDS[i];
 				gameObject.gameFields.push(map);
 				map.xmouse = function (){ return (_root._xmouse - this._x) / this.scale; }
@@ -82,7 +84,7 @@
 			newGame.getCurrentPlayer = function ():Object{return this.getPlayer(this.currentTurnPlayerIndex);}
 			newGame.phase = main;
 			newGame.infoTextBox = _root.infotxt;
-			
+			newGame.getCurrentTurnString = function ():String { return this.getCurrentPlayer()._name+"'s " + typ.gamePhaseToString(this.phase); } 
 			createMapsForAGame(newGame, .72);
 			
 			game = newGame;	// assign a last copy

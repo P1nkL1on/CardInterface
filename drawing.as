@@ -53,6 +53,7 @@
 			return mc;
 		}
 		
+		// proect a card visuals to choosen MC
 		static function traceToNewMovieClip(cardObject:Object):Array{
 			var arr = new Array();
 			var plIDS = cardObject.host.game.allPlayersIDS;
@@ -218,6 +219,7 @@
 		static var handCoords = new Array(480, 620, 880);
 		//var xFrom = 100; var xTo = 860; var yLine1 = 350; var yLine2 = 470;
 		//var xTo1 = 340; var xFrom1 = 620;
+		static var fieldCoords = new Array(100, 350, 760,   100,  470, 310,   550, 470, 310);
 		static function placeCardsOfPlayer(playerObject:Object, placeIndex:Number):Void{
 			// case of choosing coordinates for calling placeCardsAsDeck
 			if (placeIndex == places.deck || placeIndex == places.graveyard || placeIndex == places.exile)
@@ -234,7 +236,12 @@
 			if (placeIndex == places.battlefield){
 				var creaturePermanents = player.eachCardInFilter(playerObject, places.battlefield, player.filterCreatures);
 				var landPermanents = player.eachCardInFilter(playerObject, places.battlefield, player.filterLand);
-				var otherPermanents = player.eachCardInFilter(playerObject, places.battlefield, player.filterCreatures);
+				var otherPermanents = player.eachCardInFilter(playerObject, places.battlefield);
+				otherPermanents = player.filterCards(otherPermanents, player.filterNon(player.filterCreatures));
+				otherPermanents = player.filterCards(otherPermanents, player.filterNon(player.filterLand));
+				placeCardsAsLine(creaturePermanents, fieldCoords[0], fieldCoords[1], fieldCoords[2], 10, 1);
+				placeCardsAsLine(landPermanents, fieldCoords[3], fieldCoords[4], fieldCoords[5], 10, 1);
+				placeCardsAsLine(otherPermanents, fieldCoords[6], fieldCoords[7], fieldCoords[8], 10, 1);
 			}
 			return;
 		}
@@ -290,7 +297,7 @@
 			var moveCardNumberStep = (overallTime != undefined)? (overallTime / movedFarCards.length) :
 									 ((movedFarCards.length * 30 > maxCardMoveTime)? (maxCardMoveTime / movedFarCards.length) : 30); 
 			for (var i = 0; i < movedFarCards.length; ++i)
-				movedFarCards[i].timeout = i * moveCardNumberStep;
+				movedFarCards[i].timeout = i * moveCardNumberStep / card.host.game.playerCount;
 			movedFarCards = new Array();
 		}
 		// random offset for cards lying in a deck formation
@@ -300,7 +307,7 @@
 		
 		//480 800
 		// make a line of card array given
-		static function placeCardsAsLine (cardArray:Array, X, Y, Width, overallTime):Void{
+		static function placeCardsAsLine (cardArray:Array, X, Y, Width, overallTime, spz):Void{
 			var cardTotal = cardArray.length;
 			var cardNumber = 0;
 			var moveCardNumber = moveCardNumberStep;
@@ -313,11 +320,9 @@
 					var moveToY = Y;
 					var moveToZ = 0;
 					var timer = 0;
-					if (Math.abs(moveToX - card.mc.xx) < 200) 
-						timer = 0.2; 		// this case prevent a 250 card deck to sloowly go on in match start
-					else {				
+					if (Math.abs(moveToX - card.mc.xx) > 200) {
 						movedFarCards.push(card.mc);	// to show each card, whats is drawn, or discarded
-						card.mc.sp_z = 15;						// speed of upping when card mvoes
+						card.mc.sp_z = (spz == undefined)? 15 : spz;						// speed of upping when card mvoes
 						card.mc._rotation = 0;
 					}
 					spaceMc(card.mc, X, X + Width, cardTotal, cardNumber - 1, moveToX)
@@ -329,7 +334,7 @@
 									 ((movedFarCards.length * 30 > maxCardMoveTime)? (maxCardMoveTime / movedFarCards.length) : 30); 
 			
 			for (var i = 0; i < movedFarCards.length; ++i)
-				movedFarCards[i].timeout = i * moveCardNumberStep;
+				movedFarCards[i].timeout = i * moveCardNumberStep / card.host.game.playerCount;
 			movedFarCards = new Array();
 		}
 		
