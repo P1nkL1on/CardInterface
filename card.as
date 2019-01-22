@@ -73,6 +73,7 @@
 				newCard.castingCost.push((cardCastCost != undefined)? cardCastCost : cost.noCost());
 				newCard.castingFrom = new Array();
 				newCard.castingFrom.push (places.hand);
+				newCard.makeUnseen = function (){ this.isVisibleTo = new Array(); for (var i = 0; i < this.mcs.length; ++i)this.mcs[i].gotoAndStop('unseen'); }
 				// for example:
 				// cCost = {5, 6},, cFrom = {hand, graveyard} -- can be cast from hand for 5, from graveyard for 6
 			

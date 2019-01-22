@@ -7,7 +7,7 @@
 		
 		static var colorToPic = new Array(-1, 4, 2, 1, 5, 3);
 		
-		static var framesTimeout = 0;
+		//static var framesTimeout = 0;
 		
 		static function makePictureForCard(cardObject:Object):Number{
 			if (cardObject.cTypes()[0] + cardObject.cTypes()[1] == 101)
@@ -153,7 +153,7 @@
 							this._x += this.dx / (this.movespd * 2);
 							this._yy += this.dy / (this.movespd * 2);
 							this._z += this.dz / (this.movespd * 3);
-							this._z += this.sp_z; if (this.sp_z > .2) this.sp_z /= 1.03; else this.sp_z = 0; 
+							this._z += this.sp_z; if (this.sp_z > .2) this.sp_z /= 1.1; else this.sp_z = 0; 
 							
 							if (-this.dz / this.movespd / 3 > this.sp_z && this.nextDepth != null)
 							{this.swapDepths(this.nextDepth); this.nextDepth = null;}
@@ -290,7 +290,7 @@
 				movedFarCards[i].timeout = farTimer;
 			}
 			
-			cardArray[0].host.game.framesTimeout += (movedFarCards.length > 0)? (farTimer + 30) : 25;
+			cardArray[0].host.game.framesTimeout += (movedFarCards.length > 0)? (Math.round(farTimer) + 45) : 30;
 			movedFarCards = new Array();
 		}
 		// random offset for cards lying in a deck formation
@@ -332,7 +332,7 @@
 				farTimer = i * moveCardNumberStep / card.host.game.playerCount;
 				movedFarCards[i].timeout = farTimer;
 			}
-			cardArray[0].host.game.framesTimeout += (movedFarCards.length > 0)? (farTimer + 40) : 45;
+			cardArray[0].host.game.framesTimeout += (movedFarCards.length > 0)? (Math.round(farTimer) + 40) : 45;
 			movedFarCards = new Array();
 		}
 		

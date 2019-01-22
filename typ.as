@@ -91,12 +91,12 @@
 			return "????";
 		}
 		
-		static function gameCase (gameObject:Object, playerObject:Object, parameters:Array):Object{
+		static function gameCase (playerObject:Object, parameters):Object{
 			var newCase = new Object();
-			newCase.game = gameObject;
+			newCase.game = playerObject.game;
 			newCase.player = playerObject;
 			newCase.parameters = (parameters == undefined)? new Array() : parameters;
-			
+			newCase.isCase = true;
 			return newCase;
 		}
 	}

@@ -16,6 +16,8 @@
 			newPlayer.PID = playerIndex;						// special personal idnex for rules
 			newPlayer.health = consts.playerStartingLifeTotal;	
 			newPlayer._name = playerName;
+			newPlayer.personalTimeOut = 0;
+			newPlayer.actionQueue = new Array();
 			//transform from ' playerCards = new Array(14, "Island", 10, "Varmountain"); ' to real card examples
 			newPlayer.cards = new Array();
 			newPlayer.timer = 0;
@@ -115,9 +117,12 @@
 				var cardsShuffled = new Array();
 				while(cardsShuffled.length < needLength)
 				{
-				   var rnd = Math.floor( Math.random() * cardsFromDeck.length );
-				   cardsShuffled.push( cardsFromDeck[rnd] );
-				   cardsFromDeck.splice( rnd, 1 ); // remove the random result
+				    var rnd = Math.floor( Math.random() * cardsFromDeck.length );
+				    var pickedCard = cardsFromDeck[rnd];
+				    if (pickedCard.isin == places.deck)
+						pickedCard.makeUnseen();
+				    cardsShuffled.push(pickedCard);
+				    cardsFromDeck.splice( rnd, 1 ); // remove the random result
 				}	
 				return cardsShuffled;
 			}
@@ -137,13 +142,19 @@
 			
 			// force a target player to shuffle his deck
 			static function playerShuflesDeck (playerObject:Object):Void{
-				playerDoWithCads(playerObject, places.deck, randomlyShuffleArray);
+				if (playerObject.isCase != true)
+					playerDoWithCads(playerObject, places.deck, randomlyShuffleArray);
+				else
+					playerDoWithCads(playerObject.player, places.deck, randomlyShuffleArray);
 			}
 			// force a player to draw 'cardCount' cards
 			static function playerDrawsCards(playerObject:Object, cardCount:Number):Void{
-				var deckEmpty = playerMoveCards(playerObject, cardCount, places.deck, places.hand);
+				var deckEmpty = false;
+				if (playerObject.isCase != true)
+					playerMoveCards(playerObject, cardCount, places.deck, places.hand);
+				else
+					playerMoveCards(playerObject.player, playerObject.parameters, places.deck, places.hand);
 				if (!deckEmpty);
-					// LOST THE GAME!
 			}
 			// put 'cardCount' from the top of players deck into thrie graveyard
 			static function playerPutTopCardsToGraveyard(playerObject:Object, cardCount:Number):Void{
@@ -153,7 +164,13 @@
 			static function playerDiscardHand(playerObject:Object):Void{
 				playerMoveCards(playerObject, player.cardCountIn(playerObject, places.hand), places.hand, places.graveyard);
 			}
-			
+			// force a player to discard his hand
+			static function playerPutHandToDeck(playerObject:Object):Void{
+				if (playerObject.isCase != true)
+					playerMoveCards(playerObject, player.cardCountIn(playerObject, places.hand), places.hand, places.deck);
+				else
+					playerMoveCards(playerObject.player, player.cardCountIn(playerObject.player, places.hand), places.hand, places.deck);
+			}
 			// elemental operation of moving card without any view updates
 			static function moveCardTo(playerOb:Object, curCard:Object, to:Number):Void{
 				var wasIn = curCard.isin;

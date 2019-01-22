@@ -30,13 +30,12 @@
 					7, "Test Artifact"
 					)
 				));
-			
 			g.forEachPlayer(function(playerObject){
 				drawing.createMcForEveryPlayerCard(playerObject);
 				drawing.updateCardsOfPlayer(playerObject);
 				drawing.updateCoutners();
+				asker.startMulliganAsker(playerObject, 7);
 			});
-			//player.playerDrawsCards(ivan, 7);
 			
 			// emblem! 
 			// at the begginig of each unkeep all player untap all shit he has
@@ -101,25 +100,35 @@
 			newGame.playerCount = newGame.players.length; 					// number of players
 			newGame.currentTurnPlayerIndex = 0;//random(newGame.playerCount);	// will start the game
 			
-			newGame.phase = main;		// current phase
+			newGame.phase = pregame;		// current phase
 			newGame.framesTimeout = 0; // curent frame await to make a next action animate and execute
 			newGame.actionQueue = new Array(); // actions in queue
+			
 			asker.addTimer(newGame);
 			
-			createMapsForAGame(newGame, gameFieldScale);
 			newGame.getPlayer = function (PID:Number):Object{return this.players[PID];}
 			newGame.getCurrentPlayer = function ():Object{return this.getPlayer(this.currentTurnPlayerIndex);}
-			newGame.getCurrentTurnString = function ():String { return this.getCurrentPlayer()._name+"'s " + typ.gamePhaseToString(this.phase); } 
+			newGame.getCurrentTurnString = function ():String {
+				if (!this.phase) return "pre-game";
+				return (this.getCurrentPlayer()._name+"'s " + typ.gamePhaseToString(this.phase)); 
+			} 
 			newGame.forEachPlayer = function (action):Void{ for (var i = 0; i < this.playerCount; ++i) action(this.players[(i + this.currentTurnPlayerIndex)%this.playerCount]); }
 			newGame.then = function (actionFunction, gameCase:Object):Void{	// make then something
 				this.actionQueue.push(actionFunction);
 				this.actionQueue.push(gameCase);
 				trace('Added to queue!');
 			}
+			newGame.thenPersonal = function (actionFunction, gameCase:Object):Void{
+				gameCase.player.actionQueue.push(actionFunction);
+				gameCase.player.actionQueue.push(gameCase);
+				trace('Added to ' + gameCase.player._name + ' queue!');
+			}
+			createMapsForAGame(newGame, gameFieldScale);
 			game = newGame;	// assign a last copy
 			
 			return game;
 		}
+		static var pregame = 0;
 		static var untap = 10;
 		static var unkeep = 11;
 		static var draw = 12;
