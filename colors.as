@@ -29,6 +29,10 @@
 		static var blackColor = new Array(64,61,61);
 		static var redColor = new Array(192,60,39);
 		
+		static var buttonAcceptColor = new Array(252,124,71);
+		static var buttonDeclineColor = new Array(18,120,220);
+		static var buttonDefaultColor = new Array(94,94,94);
+		
 		// aplly color
 		static function colorToRGB(who, r, g, b){
 			var clr:Color = new Color(who); 

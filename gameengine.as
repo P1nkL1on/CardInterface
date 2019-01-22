@@ -2,6 +2,8 @@
 
 	class gameengine {
 	
+		static var gameFieldScale = .72;
+		
 		static function test(){
 			
 			var g = initialiseGame(
@@ -30,7 +32,6 @@
 				));
 			
 			g.forEachPlayer(function(playerObject){
-				player.playerShuflesDeck(playerObject);
 				drawing.createMcForEveryPlayerCard(playerObject);
 				drawing.updateCardsOfPlayer(playerObject);
 				drawing.updateCoutners();
@@ -64,11 +65,14 @@
 				map.xmouse = function (){ return (_root._xmouse - this._x) / this.scale; }
 				map.ymouse = function (){ return (_root._ymouse - this._y) / this.scale; }
 				
+				for (var j = 0; j < gameObject.players.length; ++j)
 				for (var dc = 0, plc = 0; dc < 3; ++dc, plc = (new Array(0, 3, 4))[dc]){
 					var deckCounter = back.create_obj(back.effect_layer(), "flying_number" );
 					deckCounter.num.text = "";
-					deckCounter.pl = gameObject.players[i];
-					deckCounter.place = plc; deckCounter._x = map._x + (drawing.viewLeftBorder + drawing.viewDeckMargin* dc) * scale; deckCounter.yy = 570; deckCounter._y = deckCounter.yy;
+					deckCounter.pl = gameObject.players[j];
+					deckCounter.place = plc; 
+					deckCounter._x = map._x + (drawing.viewLeftBorder + drawing.viewDeckMargin* dc) * scale;
+					deckCounter.yy = 570 - 400 * (j != i); deckCounter._y = deckCounter.yy;
 					drawing.deckCoutners.push(deckCounter);
 					deckCounter.onMouseMove = function (){
 						if (this.num.text == "0"){this._visible = false; return;}
@@ -97,13 +101,21 @@
 			newGame.playerCount = newGame.players.length; 					// number of players
 			newGame.currentTurnPlayerIndex = 0;//random(newGame.playerCount);	// will start the game
 			
+			newGame.phase = main;		// current phase
+			newGame.framesTimeout = 0; // curent frame await to make a next action animate and execute
+			newGame.actionQueue = new Array(); // actions in queue
+			asker.addTimer(newGame);
+			
+			createMapsForAGame(newGame, gameFieldScale);
 			newGame.getPlayer = function (PID:Number):Object{return this.players[PID];}
 			newGame.getCurrentPlayer = function ():Object{return this.getPlayer(this.currentTurnPlayerIndex);}
-			newGame.phase = main;
-			newGame.infoTextBox = _root.infotxt;
 			newGame.getCurrentTurnString = function ():String { return this.getCurrentPlayer()._name+"'s " + typ.gamePhaseToString(this.phase); } 
-			createMapsForAGame(newGame, .72);
 			newGame.forEachPlayer = function (action):Void{ for (var i = 0; i < this.playerCount; ++i) action(this.players[(i + this.currentTurnPlayerIndex)%this.playerCount]); }
+			newGame.then = function (actionFunction, gameCase:Object):Void{	// make then something
+				this.actionQueue.push(actionFunction);
+				this.actionQueue.push(gameCase);
+				trace('Added to queue!');
+			}
 			game = newGame;	// assign a last copy
 			
 			return game;

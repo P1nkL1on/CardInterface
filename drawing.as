@@ -2,9 +2,12 @@
 
 	class drawing {
 		
+		static var cardScale = 80;
 		static var maxCardMoveTime = 60 * 2.5;
 		
 		static var colorToPic = new Array(-1, 4, 2, 1, 5, 3);
+		
+		static var framesTimeout = 0;
 		
 		static function makePictureForCard(cardObject:Object):Number{
 			if (cardObject.cTypes()[0] + cardObject.cTypes()[1] == 101)
@@ -70,7 +73,6 @@
 		static var stopMoveWhen = 1;
 		static var selectedItem = -1;
 		static var selectedItemX = -1;
-		static var cardScale = 80;
 		static function createMcForEveryPlayerCard(playerObject:Object, x, y):Void{
 			for (var i = 0, cardWas = 0; i < 5; ++i, cardTotal += cardTotal){
 				var place = i;
@@ -185,10 +187,11 @@
 		static var topLine = 420;
 		static var viewLeftBorder = 90;
 		static var viewRightBorder = 880;
-		static var viewLeftBorderBd = viewLeftBorder + 10;
-		static var viewRightBorderBf = viewRightBorder - 10;
+		static var midLineMargin = 80;
+		static var viewLeftBorderBd = viewLeftBorder + midLineMargin;
+		static var viewRightBorderBf = viewRightBorder - midLineMargin;
 		static var viewDeckMargin = 90;
-		static var viewPermanentLeng = 250;
+		static var viewPermanentLeng = 170;
 		static function inverseCoordinateX(X:Number, inverse):Number{
 			if (inverse == true) return 960 - X;
 			return X;
@@ -281,8 +284,13 @@
 			}
 			var moveCardNumberStep = (overallTime != undefined)? (overallTime / movedFarCards.length) :
 									 ((movedFarCards.length * 30 > maxCardMoveTime)? (maxCardMoveTime / movedFarCards.length) : 30); 
-			for (var i = 0; i < movedFarCards.length; ++i)
-				movedFarCards[i].timeout = i * moveCardNumberStep / card.host.game.playerCount;
+			var farTimer = 0;
+			for (var i = 0; i < movedFarCards.length; ++i){
+				farTimer = i * moveCardNumberStep / card.host.game.playerCount;
+				movedFarCards[i].timeout = farTimer;
+			}
+			
+			cardArray[0].host.game.framesTimeout += (movedFarCards.length > 0)? (farTimer + 30) : 25;
 			movedFarCards = new Array();
 		}
 		// random offset for cards lying in a deck formation
@@ -319,8 +327,12 @@
 			var moveCardNumberStep = (overallTime != undefined)? (overallTime / movedFarCards.length) :
 									 ((movedFarCards.length * 30 > maxCardMoveTime)? (maxCardMoveTime / movedFarCards.length) : 30); 
 			
-			for (var i = 0; i < movedFarCards.length; ++i)
-				movedFarCards[i].timeout = i * moveCardNumberStep / card.host.game.playerCount;
+			var farTimer = 0;
+			for (var i = 0; i < movedFarCards.length; ++i){
+				farTimer = i * moveCardNumberStep / card.host.game.playerCount;
+				movedFarCards[i].timeout = farTimer;
+			}
+			cardArray[0].host.game.framesTimeout += (movedFarCards.length > 0)? (farTimer + 40) : 45;
 			movedFarCards = new Array();
 		}
 		

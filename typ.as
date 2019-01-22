@@ -90,4 +90,13 @@
 			}
 			return "????";
 		}
+		
+		static function gameCase (gameObject:Object, playerObject:Object, parameters:Array):Object{
+			var newCase = new Object();
+			newCase.game = gameObject;
+			newCase.player = playerObject;
+			newCase.parameters = (parameters == undefined)? new Array() : parameters;
+			
+			return newCase;
+		}
 	}

@@ -33,7 +33,6 @@
 		}
 		
 		
-		
 		// NORMAL FUNCTIONS 
 			// for each card in players hand/graveyard/deck, do sometihng(card)
 			static function forEachCardIn(playerObject:Object, place:Number, action):Void{
