@@ -70,6 +70,7 @@
 		static var stopMoveWhen = 1;
 		static var selectedItem = -1;
 		static var selectedItemX = -1;
+		static var cardScale = 80;
 		static function createMcForEveryPlayerCard(playerObject:Object, x, y):Void{
 			for (var i = 0, cardWas = 0; i < 5; ++i, cardTotal += cardTotal){
 				var place = i;
@@ -82,6 +83,7 @@
 					ccard.mcs = mcs;
 					for (var i = 0; i < mcs.length; ++i){
 						var mc = ccard.mcs[i];
+						mc._xscale = mc._yscale = cardScale;
 						mc._x = (x == undefined)? placesOfDecksOnField[0] : x; mc._y = (y == undefined)? (mc._height / 2 - 10) : y;
 						mc.xx = mc._x; mc.yy = 0; mc.zz = 0;	// global word coordinations
 						mc._rotation = (random(9)-4) / 3;
@@ -116,7 +118,7 @@
 								// is mouse i zone of hand, battlefield, etc
 								this._x += (this.choosingX - this._x) / 3;
 								this._y += (this.choosingY - this._y) / 8;
-								this.notInZone = (Math.abs(this.yy - this.onField().ymouse()) > 50 || this.onField().xmouse() <= this.xfrom - 50 || this.onField().xmouse() >= this.xto + 50);
+								this.notInZone = (Math.abs(this.yy - this.onField().ymouse()) > cardScale * .5 || this.onField().xmouse() <= this.xfrom - cardScale * .5 || this.onField().xmouse() >= this.xto + cardScale * .5);
 								if (this.space <= 0){
 									this.mouseOver = !this.notInZone && (Math.abs(this.xx - this.onField().xmouse()) < 48);
 									this.choosingY = this._yy - 30 * this.mouseOver;
@@ -134,10 +136,10 @@
 								else
 									this.choosingY = this._yy;
 								if (this.onField().xmouse() >= this.selectXt)
-									this.choosingX = this.xfrom + (selectedItemX - 100) / (selectedItem - 1) * (this.lastNumber);
+									this.choosingX = this.xfrom + (selectedItemX - cardScale) / (selectedItem - 1) * (this.lastNumber);
 								if (this.onField().xmouse() <= this.selectX)
-									this.choosingX = this.xfrom + selectedItemX + 100 + (this.xto - (selectedItemX + 100 + this.xfrom)) / (this.lastTotal - selectedItem) * (this.lastNumber - selectedItem - 1);
-								if (Math.abs(this.choosingX - this.xx) > 100) this.choosingX = this.xx;
+									this.choosingX = this.xfrom + selectedItemX + cardScale + (this.xto - (selectedItemX + cardScale + this.xfrom)) / (this.lastTotal - selectedItem) * (this.lastNumber - selectedItem - 1);
+								if (Math.abs(this.choosingX - this.xx) > cardScale) this.choosingX = this.xx;
 								return;
 							}
 							if (this.timeout <= 1 && this.timeout >= 0 && this.sp_z <= .1) this.swapDepths(this.nextDepth);
@@ -175,52 +177,33 @@
 			
 			//trace(XX+'/'+YY+'/'+ZZ+'/'+wait+"   " + cardObj._name);
 		}
-		/* static var playerStartX = 80;
-		static var playerStartY = 620;
-		static function placeDecksForPlayer2(playerObject:Object):Void{
-			var places = new Array(0,3,4);
-			for (var i = 0; i < places.length; ++i){
-				var place = places[i];
-				var cardTotal = player.cardCountIn(playerObject, place);
-				var cardNumber = 0;
-				var moveCardNumber = 0;
-				var movenCardNumber = 0;
-				var startX = playerStartX + 130 * i;
-				player.forEachCardIn(playerObject, place, function(card:Object){
-					++cardNumber;
-					card.mc = card.mcs[0];
-					for (var i = 0; i < card.mcs.length; card.mc = card.mcs[++i]){
-						var moveToX = startX + randomOffset() * 2;
-						var moveToY = playerStartY + randomOffset();
-						// if it is deck it is backwards, cause you are drawing from the top!
-						var moveToZ = (place == 0)? ( cardTotal - cardNumber) : cardNumber;
-						// this IF prevent from moving giant count of cards, when ther place do not moves
-						// there was an error, when standing stil lcards makes a giant timer
-						if (Math.abs(card.xx -moveToX ) + Math.abs(card.yy - moveToY) + Math.abs(card.zz - moveToZ) < 20)
-							return;
-						var timer = 0;
-						if (Math.abs(startX - card.mc.xx) < 5) 
-							timer = 0.1; 		// this case prevent a 250 card deck to sloowly goon in match start
-						else {
-							++movenCardNumber;
-							timer = moveCardNumber; 	// to show each card, whats is drawn, or discarded
-							moveCardNumber += Math.max( 2, 30 - movenCardNumber * .3);		// time delay between card mvoements
-							card.mc.sp_z = 25;			// speed of upping when card mvoes
-						}
-						card.mc.indeck = true;
-						moveCardMc(card.mc, moveToX, moveToY, moveToZ,  timer / card.host.game.playerCount);
-					}
-				});
-			}
-		} */
 		
 		// place all visible card from some of choosen player's place to their places
 		
-		static var placesOfDecksOnField = new Array(110, 620, -1, -1, -1, -1, 230, 620, 355, 620, -1, -1); 
-		static var handCoords = new Array(480, 620, 880);
-		//var xFrom = 100; var xTo = 860; var yLine1 = 350; var yLine2 = 470;
-		//var xTo1 = 340; var xFrom1 = 620;
-		static var fieldCoords = new Array(100, 350, 760,   100,  470, 310,   550, 470, 310);
+		static var bottomLine = 640;
+		static var middleLine = 510;
+		static var topLine = 420;
+		static var viewLeftBorder = 90;
+		static var viewRightBorder = 880;
+		static var viewLeftBorderBd = viewLeftBorder + 10;
+		static var viewRightBorderBf = viewRightBorder - 10;
+		static var viewDeckMargin = 90;
+		static var viewPermanentLeng = 250;
+		static function inverseCoordinateX(X:Number, inverse):Number{
+			if (inverse == true) return 960 - X;
+			return X;
+		}
+		static function inverseCoordinateY(Y:Number, inverse):Number{
+			if (inverse == true) return 720 - Y;
+			return Y;
+		}
+		static var placesOfDecksOnField = new Array(viewLeftBorder, bottomLine, -1, -1, -1, -1, 
+													viewLeftBorder + viewDeckMargin, bottomLine, 
+													viewLeftBorder + viewDeckMargin * 2, bottomLine, -1, -1); 
+		static var handCoords = new Array(viewLeftBorder + 3 * viewDeckMargin + 50, bottomLine, viewRightBorder);
+		static var fieldCoords = new Array(viewLeftBorderBd, topLine, viewRightBorderBf - viewLeftBorderBd,   
+										   viewLeftBorderBd,  middleLine, viewPermanentLeng,  
+										   viewRightBorderBf - viewPermanentLeng, middleLine, viewPermanentLeng);
 		static function placeCardsOfPlayer(playerObject:Object, placeIndex:Number):Void{
 			// case of choosing coordinates for calling placeCardsAsDeck
 			if (placeIndex == places.deck || placeIndex == places.graveyard || placeIndex == places.exile)
@@ -276,8 +259,9 @@
 				var card = cardArray[cardNumber - 1];
 				card.mc = card.mcs[0];
 				for (var i = 0; i < card.mcs.length; card.mc = card.mcs[++i]){
-					var moveToX = X+ randomOffset() * 2;
-					var moveToY = Y + randomOffset();
+					var mirrority = (i != card.host.PID);
+					var moveToX = /* inverseCoordinateX( */X+ randomOffset() * 2/* , mirrority); */
+					var moveToY = inverseCoordinateY(Y + randomOffset(), mirrority);
 					// if it is deck it is backwards, cause you are drawing from the top!
 					var moveToZ = (isDeck == true)? ( cardTotal - cardNumber) : cardNumber;
 					// this IF prevent from moving giant count of cards, when ther place do not moves
@@ -317,8 +301,9 @@
 				var card = cardArray[cardNumber - 1];
 				card.mc = card.mcs[0];
 				for (var i = 0; i < card.mcs.length; card.mc = card.mcs[++i]){
-					var moveToX = calculateXCoord(X, X + Width, cardTotal - 1, cardNumber - 1);
-					var moveToY = Y;
+					var mirrority = (i != card.host.PID);
+					var moveToX = /* inverseCoordinateX( */calculateXCoord(X, X + Width, cardTotal - 1, cardNumber - 1)/* , mirrority); */
+					var moveToY = inverseCoordinateY(Y, mirrority);
 					var moveToZ = 0;
 					var timer = 0;
 					if (Math.abs(moveToX - card.mc.xx) > 200) {
@@ -393,11 +378,11 @@
 		
 		
 		static function calculateXCoord (xFrom, xTo, cardTotal, cardNumber):Number{
-			return xFrom + ((spaceDiff(xFrom, xTo, cardTotal) > 0)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + 100 * (cardTotal * (-.5) + cardNumber)));
+			return xFrom + ((spaceDiff(xFrom, xTo, cardTotal) > 0)?((xTo - xFrom) / (cardTotal) * (cardNumber)) : ((xTo - xFrom) / 2 + cardScale * (cardTotal * (-.5) + cardNumber)));
 		}
 		
 		static function spaceDiff (xFrom, xTo, cardTotal):Number{
-			return cardTotal - (xTo - xFrom) / 100;
+			return cardTotal - (xTo - xFrom) / cardScale;
 		}
 		
 		static function spaceMc(mc:MovieClip, xFrom, xTo, cardTotal, cardNumber, moveToX){
@@ -407,9 +392,9 @@
 			mc.xfrom = xFrom; mc.xto = xTo;
 			mc.spaceStep = (xTo - xFrom) / (cardTotal - 1);
 			mc.selectX = moveToX - mc.spaceStep * .5; mc.selectXt = moveToX + mc.spaceStep * .5;
-			mc.cOffset = 50 / mc.spaceStep;						
-			if (cardNumber == 0) mc.selectX -= 50;				// left most
-			if (cardNumber == cardTotal - 1) mc.selectXt += 50;	// right most cad zone add
+			mc.cOffset = cardScale * .5 / mc.spaceStep;						
+			if (cardNumber == 0) mc.selectX -= cardScale * .5;				// left most
+			if (cardNumber == cardTotal - 1) mc.selectXt += cardScale * .5;	// right most cad zone add
 			mc.space = spaceDiff(xFrom, xTo, mc.lastTotal);		// a palce between cards, which are common
 		}
 		

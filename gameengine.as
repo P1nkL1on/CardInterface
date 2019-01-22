@@ -29,11 +29,12 @@
 					)
 				));
 			
-			var ivan = g.getPlayer(0);
-			player.playerShuflesDeck(ivan);
-			drawing.createMcForEveryPlayerCard(ivan);
-			drawing.updateCardsOfPlayer(ivan);
-			drawing.updateCoutners();
+			g.forEachPlayer(function(playerObject){
+				player.playerShuflesDeck(playerObject);
+				drawing.createMcForEveryPlayerCard(playerObject);
+				drawing.updateCardsOfPlayer(playerObject);
+				drawing.updateCoutners();
+			});
 			//player.playerDrawsCards(ivan, 7);
 			
 			// emblem! 
@@ -67,11 +68,11 @@
 					var deckCounter = back.create_obj(back.effect_layer(), "flying_number" );
 					deckCounter.num.text = "";
 					deckCounter.pl = gameObject.players[i];
-					deckCounter.place = plc; deckCounter._x = map._x + (110 + 120 * dc + 10 * (dc ==2)) * scale; deckCounter.yy = 560; deckCounter._y = deckCounter.yy;
+					deckCounter.place = plc; deckCounter._x = map._x + (drawing.viewLeftBorder + drawing.viewDeckMargin* dc) * scale; deckCounter.yy = 570; deckCounter._y = deckCounter.yy;
 					drawing.deckCoutners.push(deckCounter);
 					deckCounter.onMouseMove = function (){
 						if (this.num.text == "0"){this._visible = false; return;}
-						this._visible = (Math.abs(this._x - _root._xmouse) < 50 && Math.abs(this._y - _root._ymouse) < 50);
+						this._visible = (Math.abs(this._x - _root._xmouse) < drawing.cardScale / 2 && Math.abs(this._y - _root._ymouse) < drawing.cardScale / 2);
 					}
 				}
 			}
@@ -102,7 +103,7 @@
 			newGame.infoTextBox = _root.infotxt;
 			newGame.getCurrentTurnString = function ():String { return this.getCurrentPlayer()._name+"'s " + typ.gamePhaseToString(this.phase); } 
 			createMapsForAGame(newGame, .72);
-			
+			newGame.forEachPlayer = function (action):Void{ for (var i = 0; i < this.playerCount; ++i) action(this.players[(i + this.currentTurnPlayerIndex)%this.playerCount]); }
 			game = newGame;	// assign a last copy
 			
 			return game;
