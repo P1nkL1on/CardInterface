@@ -36,7 +36,10 @@
 				drawing.updateCoutners();
 				asker.startMulliganAsker(playerObject, 7);
 			});
-			
+			asker.makePersonalSolutionAwaiter(g, g.playerCount);
+			//g.then(function(){trace('@@@@');})
+			g.then(function(){g.nextPhase(untap);})
+			g.then(player.playerDrawsCards, typ.gameCase(g.getCurrentPlayer(), 1));
 			// emblem! 
 			// at the begginig of each unkeep all player untap all shit he has
 			// then all the shit abilities works
@@ -46,7 +49,8 @@
 			
 			game = g;
 		}
-	
+		
+		// make visual holders for game card-mcs
 		static function createMapsForAGame(gameObject:Object, scale:Number):Array{
 			gameObject.gameFields = new Array();
 			if (scale == undefined) scale = 1;
@@ -98,7 +102,8 @@
 				newGame.allPlayersIDS.push(i);
 			}
 			newGame.playerCount = newGame.players.length; 					// number of players
-			newGame.currentTurnPlayerIndex = 0;//random(newGame.playerCount);	// will start the game
+			newGame.currentTurnPlayerIndex = random(newGame.playerCount);	// will start the game
+			newGame.turnCount = 0;
 			
 			newGame.phase = pregame;		// current phase
 			newGame.framesTimeout = 0; // curent frame await to make a next action animate and execute
@@ -122,6 +127,23 @@
 				gameCase.player.actionQueue.push(actionFunction);
 				gameCase.player.actionQueue.push(gameCase);
 				trace('Added to ' + gameCase.player._name + ' queue!');
+			}
+			newGame.nextPhase = function (newPhase):Void{
+				//  
+				// trigger all end phase events
+				//
+				this.phase = (newPhase == undefined)? (this.phase + 1) : newPhase;
+				for (var i = 0; i < this.playerCount; ++i)
+					this.players[i].map.gametxt.text = this.getCurrentTurnString();
+				if (this.phase == endstep + 1){
+					// turn change
+					this.currentTurnPlayerIndex = (this.currentTurnPlayerIndex + 1) % this.playerCount;
+					this.turnCount++;
+					this.phase = untap;
+				}
+				//
+				// trigger all start phase events
+				//
 			}
 			createMapsForAGame(newGame, gameFieldScale);
 			game = newGame;	// assign a last copy

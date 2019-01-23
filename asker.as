@@ -54,7 +54,15 @@
 		static var resultAccept = 10;
 		static var resultDecline = 11;
 		
-		static function makeAsker(forPlayer:Object, description:String, solvingFunction, buttons:Array, where, params, awaitTimer):MovieClip{
+		static function makeAsker(
+			forPlayer:Object, 
+			description:String, 
+			solvingFunction, // this.solvingFunction(this.result, this.playerToChoose, this.params);
+			buttons:Array, 
+			where,
+			params, // params for solvinf function
+			awaitTimer
+			):MovieClip{
 			if (where == undefined) where = GUIlayer;
 			if (description == undefined) description = "...?";
 			var newAsker = back.create_obj(where, "empty", "asker");
@@ -97,14 +105,37 @@
 			return newAsker;
 		}
 		
+		static function makePersonalSolutionAwaiter (gameObject:Object, requiredPlayerCount:Number, afterFunction, afterFunctionParams):MovieClip{
+			if (gameObject.newWaiter != undefined){
+				trace('!!! Critical Error! Last solution awaiter was not deleted!');
+				return null;
+			}
 		
-		static function test(){
-			//makeButton(_root, 'Accept', colors.buttonAcceptColor, 300, 300 + .4 * buttonScale);
-			//makeButton(_root, 'Decline', colors.buttonDeclineColor, 300, 300);
-			//makeAsker(gameengine.game.getPlayer(1), 'select y/n');
-			//makeAsker(gameengine.game.getPlayer(1), 'select y/n');
-			//makeAsker(gameengine.game.getPlayer(0), 'Keep theese cards, or mulligan -- shuffle your hand to library and draw one less card?');
+			var newWaiter = back.create_obj(GUIlayer, "empty", "solutionAwaiter");
+			newWaiter.requiredPlayerCount = requiredPlayerCount;
+			newWaiter.answered = 0;
+			newWaiter.game = gameObject;
+			newWaiter.afterFunction = afterFunction;
+			newWaiter.afterFunctionParams = afterFunctionParams;
+			newWaiter.onEnterFrame = function (){
+				
+				if (this.lastAnswered != this.answered){
+					trace('Awaiting for ' + (this.requiredPlayerCount - this.answered)+'/'+this.requiredPlayerCount + " player's solutions");
+					this.lastAnswered = this.answered;
+				}
+				if (this.answered >= this.requiredPlayerCount){
+					trace('All players answered for solution! Go further!');
+					this.game.currentWaiter = undefined;
+					this.afterFunction(this.afterFunctionParams);
+					
+					this.removeMovieClip();
+				}
+				// do not let the game timer goes long, because of waiting
+				this.game.framesTimeout = Math.max(20, this.game.framesTimeout);
+			}
 			
+			gameObject.currentWaiter = newWaiter;
+			return newWaiter;
 		}
 		
 		static function startMulliganAsker(forPlayer:Object, cardCount){
@@ -119,16 +150,18 @@
 		static function mulliganAsker(lastResult:Number, playerO:Object, parameters){
 			var cardCount = parameters[0];
 			
+			var gameO = playerO.game;
 			if (lastResult == resultAccept){
 				trace(playerO._name + ' starts game with ' + cardCount);
+				gameO.currentWaiter.answered++;
 				return;
 			}
-			var gameO = playerO.game;
 			if (lastResult == resultDecline && cardCount == 2){
 				trace(playerO._name + ' starts game with ' + 1);
 				gameO.thenPersonal(player.playerPutHandToDeck, typ.gameCase(playerO));
 				gameO.thenPersonal(player.playerShuflesDeck, typ.gameCase(playerO));
 				gameO.thenPersonal(player.playerDrawsCards, typ.gameCase(playerO, 1));
+				gameO.currentWaiter.answered++;
 				return;
 			}
 			cardCount--;

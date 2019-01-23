@@ -162,7 +162,10 @@
 			}
 			// force a player to discard his hand
 			static function playerDiscardHand(playerObject:Object):Void{
-				playerMoveCards(playerObject, player.cardCountIn(playerObject, places.hand), places.hand, places.graveyard);
+				if (playerObject.isCase != true)
+					playerMoveCards(playerObject, player.cardCountIn(playerObject, places.hand), places.hand, places.graveyard);
+				else
+					playerMoveCards(playerObject.player, player.cardCountIn(playerObject.player, places.hand), places.hand, places.graveyard);
 			}
 			// force a player to discard his hand
 			static function playerPutHandToDeck(playerObject:Object):Void{
